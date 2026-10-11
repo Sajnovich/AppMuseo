@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ícono de la app: un museo (frontón, columnas y escalinata) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Escalado al 80 % para que quepa en la "zona segura" de los íconos adaptativos -->
+    <group android:pivotX="54" android:pivotY="54" android:scaleX="0.8" android:scaleY="0.8">
+        <path android:fillColor="#C8963E" android:pathData="M54,30 L80,43 L28,43 Z" />
+        <path android:fillColor="#F4E9D8" android:pathData="M30,45 H78 V49 H30 Z" />
+        <path android:fillColor="#F4E9D8" android:pathData="M33,51 H38 V70 H33 Z" />
+        <path android:fillColor="#F4E9D8" android:pathData="M44,51 H49 V70 H44 Z" />
+        <path android:fillColor="#F4E9D8" android:pathData="M59,51 H64 V70 H59 Z" />
+        <path android:fillColor="#F4E9D8" android:pathData="M70,51 H75 V70 H70 Z" />
+        <path android:fillColor="#F4E9D8" android:pathData="M29,72 H79 V76 H29 Z" />
+        <path android:fillColor="#C8963E" android:pathData="M26,78 H82 V81 H26 Z" />
+    </group>
+</vector>
