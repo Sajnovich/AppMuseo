@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -103,7 +104,12 @@ fun HomeScreen(
                 nombreUsuario = usuario.nombre,
                 onNavegar = { screen ->
                     scope.launch { drawerState.close() }
-                    if (screen != Screen.Home) mainViewModel.navigateTo(screen)
+                    when (screen) {
+                        Screen.Home -> Unit   // ya estamos en el Inicio
+                        // Las pantallas de la barra inferior se abren como pestañas (sin duplicarlas en la pila)
+                        Screen.Catalogo, Screen.Mapa, Screen.MisSolicitudes, Screen.Perfil -> mainViewModel.navegarPestana(screen)
+                        else -> mainViewModel.navigateTo(screen)
+                    }
                 },
                 onCerrarSesion = {
                     scope.launch { drawerState.close() }
@@ -198,7 +204,7 @@ fun HomeScreen(
 private fun TarjetaAcceso(acceso: AccesoRapido, modifier: Modifier = Modifier) {
     Card(
         onClick = acceso.accion,
-        modifier = modifier.height(104.dp),
+        modifier = modifier.heightIn(min = 104.dp),   // heightIn: crece si el usuario usa letra grande
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(

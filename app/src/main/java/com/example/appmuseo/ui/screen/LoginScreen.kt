@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -81,6 +83,7 @@ fun LoginScreen(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
+                .imePadding()                             // deja espacio al teclado (la app es edge-to-edge)
                 .verticalScroll(rememberScrollState())   // permite desplazar si aparece el teclado
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -138,6 +141,8 @@ fun LoginScreen(
                 },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                // Al presionar "Listo" en el teclado se intenta ingresar, igual que con el botón
+                keyboardActions = KeyboardActions(onDone = { loginViewModel.iniciarSesion() }),
                 enabled = !autenticando,
                 modifier = Modifier.fillMaxWidth()
             )

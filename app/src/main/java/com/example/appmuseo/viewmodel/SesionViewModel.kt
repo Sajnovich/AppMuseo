@@ -43,11 +43,11 @@ class SesionViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun iniciarSesion(perfil: PerfilUsuario) {
-        viewModelScope.launch {
-            sesionDataStore.guardarSesion(perfil)
-            _usuario.value = perfil
-            _sesionActiva.value = true
-        }
+        // Primero actualizamos el estado (la pantalla de Inicio ya tiene el nombre al abrirse)
+        _usuario.value = perfil
+        _sesionActiva.value = true
+        // y después lo guardamos en el teléfono
+        viewModelScope.launch { sesionDataStore.guardarSesion(perfil) }
     }
 
     fun cerrarSesion() {
