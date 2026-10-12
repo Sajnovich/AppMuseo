@@ -1,0 +1,238 @@
+package com.example.appmuseo.ui.screen
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import com.example.appmuseo.model.TipoDestino
+import com.example.appmuseo.navigation.Screen
+import com.example.appmuseo.ui.components.BarraSuperior
+import com.example.appmuseo.utils.CotizadorEnvio
+import com.example.appmuseo.utils.formatearPrecio
+import com.example.appmuseo.viewmodel.CarritoViewModel
+import com.example.appmuseo.viewmodel.MainViewModel
+import com.example.appmuseo.viewmodel.SesionViewModel
+import com.example.appmuseo.viewmodel.SolicitudViewModel
+
+/**
+ * FORMULARIO DE SOLICITUD de compra / inscripción (Guía 11):
+ * OutlinedTextField + isError/supportingText, RadioButton para la zona y Checkbox de términos.
+ * Al confirmar, la solicitud se guarda en Room con estado PENDIENTE.
+ */
+@Composable
+fun SolicitudScreen(
+    solicitudViewModel: SolicitudViewModel,
+    carritoViewModel: CarritoViewModel,
+    sesionViewModel: SesionViewModel,
+    mainViewModel: MainViewModel
+) {
+    val formulario by solicitudViewModel.formulario.collectAsState()
+    val items by carritoViewModel.items.collectAsState()
+    val usuario by sesionViewModel.usuario.collectAsState()
+    val guardando by solicitudViewModel.guardando.collectAsState()
+
+    val subtotal = items.sumOf { it.subtotal }
+    val pesoTotal = items.sumOf { it.producto.pesoKg * it.cantidad }
+    val requiereEnvio = items.any { it.producto.requiereEnvio }
+    val costoEnvio = if (requiereEnvio) formulario.cotizacion?.costoEnvio ?: 0 else 0
+
+    // Al entrar, completamos nombre y correo con los datos de la sesión
+    LaunchedEffect(Unit) {
+        solicitudViewModel.precargarDatos(usuario.nombre, usuario.correo)
+    }
+    // Si cambian el peso o el subtotal del carrito, se recalcula el envío de la zona elegida
+    LaunchedEffect(pesoTotal, subtotal) {
+        solicitudViewModel.actualizarCotizacion(pesoTotal, subtotal)
+    }
+
+    Scaffold(
+        topBar = { BarraSuperior(titulo = "Solicitud", onVolver = { mainViewModel.navigateBack() }) }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .imePadding()   // el teclado no tapa la dirección ni el botón
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("Datos de contacto", style = MaterialTheme.typography.titleMedium)
+
+            OutlinedTextField(
+                value = formulario.nombre,
+                onValueChange = solicitudViewModel::onNombreChange,
+                label = { Text("Nombre completo") },
+                isError = formulario.errores.nombre != null,
+                supportingText = { formulario.errores.nombre?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = formulario.correo,
+                onValueChange = solicitudViewModel::onCorreoChange,
+                label = { Text("Correo electrónico") },
+                isError = formulario.errores.correo != null,
+                supportingText = { formulario.errores.correo?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Los datos de despacho solo aparecen si hay productos físicos
+            if (requiereEnvio) {
+                HorizontalDivider()
+                Text("Despacho", style = MaterialTheme.typography.titleMedium)
+
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TipoDestino.entries.forEach { tipo ->
+                        FilterChip(
+                            selected = formulario.tipoDestino == tipo,
+                            onClick = { solicitudViewModel.onTipoDestinoChange(tipo) },
+                            label = { Text(tipo.etiqueta) }
+                        )
+                    }
+                }
+
+                // Lista de zonas con RadioButton. "selectable" hace clickeable toda la fila (más fácil de tocar)
+                CotizadorEnvio.zonasPorTipo(formulario.tipoDestino).forEach { zona ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .selectable(
+                                selected = formulario.zona == zona,
+                                onClick = { solicitudViewModel.onZonaChange(zona, pesoTotal, subtotal) },
+                                role = Role.RadioButton
+                            )
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(selected = formulario.zona == zona, onClick = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(zona.nombre, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+                formulario.errores.zona?.let {
+                    Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
+
+                OutlinedTextField(
+                    value = formulario.direccion,
+                    onValueChange = solicitudViewModel::onDireccionChange,
+                    label = { Text("Dirección de despacho") },
+                    isError = formulario.errores.direccion != null,
+                    supportingText = { formulario.errores.direccion?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            // Términos y condiciones: toda la fila es clickeable (accesibilidad)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .toggleable(
+                        value = formulario.aceptaTerminos,
+                        onValueChange = solicitudViewModel::onAceptaTerminosChange,
+                        role = Role.Checkbox
+                    ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(checked = formulario.aceptaTerminos, onCheckedChange = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Acepto los términos y condiciones (datos simulados)")
+            }
+            formulario.errores.terminos?.let {
+                Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
+
+            // Resumen de la solicitud
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Resumen", style = MaterialTheme.typography.titleMedium)
+                    items.forEach { item ->
+                        FilaResumen("${item.cantidad}x ${item.producto.nombre}", formatearPrecio(item.subtotal))
+                    }
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    FilaResumen("Subtotal", formatearPrecio(subtotal))
+                    if (requiereEnvio) {
+                        val cotizacion = formulario.cotizacion
+                        FilaResumen(
+                            "Envío",
+                            when {
+                                cotizacion == null -> "Elige una zona"
+                                cotizacion.envioGratis -> "Gratis"
+                                else -> "${formatearPrecio(cotizacion.costoEnvio)} · ${cotizacion.plazo}"
+                            }
+                        )
+                    }
+                    FilaResumen("Total", formatearPrecio(subtotal + costoEnvio), destacado = true)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = {
+                    solicitudViewModel.confirmarSolicitud(items) {
+                        // Se ejecuta solo si se guardó en Room
+                        carritoViewModel.vaciar()
+                        mainViewModel.navigateTo(Screen.MisSolicitudes, popUpToRoute = Screen.Home)
+                    }
+                },
+                enabled = items.isNotEmpty() && !guardando,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+            ) {
+                Text("Confirmar solicitud")
+            }
+        }
+    }
+}
+
+@Composable
+private fun FilaResumen(etiqueta: String, valor: String, destacado: Boolean = false) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(
+            etiqueta,
+            modifier = Modifier.weight(1f),
+            style = if (destacado) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            valor,
+            style = if (destacado) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium,
+            fontWeight = if (destacado) FontWeight.Bold else FontWeight.Normal
+        )
+    }
+}
