@@ -2,6 +2,8 @@ package com.example.appmuseo.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -19,6 +21,7 @@ import com.example.appmuseo.ui.screen.LoginScreen
 import com.example.appmuseo.ui.screen.MapaMuseosScreen
 import com.example.appmuseo.ui.screen.MisSolicitudesScreen
 import com.example.appmuseo.ui.screen.PerfilScreen
+import com.example.appmuseo.ui.screen.RegistroScreen
 import com.example.appmuseo.ui.screen.SolicitudScreen
 import com.example.appmuseo.viewmodel.CarritoViewModel
 import com.example.appmuseo.viewmodel.CatalogoViewModel
@@ -28,8 +31,11 @@ import com.example.appmuseo.viewmodel.LoginViewModel
 import com.example.appmuseo.viewmodel.MainViewModel
 import com.example.appmuseo.viewmodel.MapaViewModel
 import com.example.appmuseo.viewmodel.PerfilViewModel
+import com.example.appmuseo.viewmodel.RegistroViewModel
 import com.example.appmuseo.viewmodel.SesionViewModel
 import com.example.appmuseo.viewmodel.SolicitudViewModel
+import com.example.appmuseo.data.local.AppDatabase
+import com.example.appmuseo.repository.AuthRepository
 import kotlinx.coroutines.flow.collectLatest
 
 /**
@@ -42,11 +48,19 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
+    val context = LocalContext.current
+
+    // Repositorio de autenticación con acceso a Room (cuentas registradas). remember = se crea una vez
+    val authRepository = remember {
+        AuthRepository(usuarioDao = AppDatabase.obtenerBaseDeDatos(context).usuarioDao())
+    }
 
     // ViewModels compartidos (viven mientras viva la Activity)
     val mainViewModel: MainViewModel = viewModel()
     val sesionViewModel: SesionViewModel = viewModel()
-    val loginViewModel: LoginViewModel = viewModel()
+    // viewModel { ... } permite entregarle parámetros al ViewModel al crearlo
+    val loginViewModel: LoginViewModel = viewModel { LoginViewModel(authRepository) }
+    val registroViewModel: RegistroViewModel = viewModel { RegistroViewModel(authRepository) }
     val catalogoViewModel: CatalogoViewModel = viewModel()
     val carritoViewModel: CarritoViewModel = viewModel()
     val solicitudViewModel: SolicitudViewModel = viewModel()
@@ -82,6 +96,9 @@ fun AppNavigation() {
         }
         composable(route = Screen.Login.route) {
             LoginScreen(loginViewModel, sesionViewModel, mainViewModel)
+        }
+        composable(route = Screen.Registro.route) {
+            RegistroScreen(registroViewModel, loginViewModel, mainViewModel)
         }
         composable(route = Screen.Home.route) {
             HomeScreen(mainViewModel, sesionViewModel, catalogoViewModel, carritoViewModel)
