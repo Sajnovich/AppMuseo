@@ -38,8 +38,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.appmuseo.model.Categoria
+import com.example.appmuseo.model.Curso
 import com.example.appmuseo.model.Producto
+import com.example.appmuseo.model.ProductoFisico
 import com.example.appmuseo.navigation.Screen
 import com.example.appmuseo.ui.components.BarraSuperior
 import com.example.appmuseo.ui.components.IconoCategoria
@@ -97,7 +98,7 @@ fun DetalleProductoScreen(
                 mensaje = mensaje,
                 modifier = Modifier.padding(innerPadding),
                 onAgregar = {
-                    val esCurso = producto.categoria == Categoria.CURSO
+                    val esCurso = producto is Curso
                     val agregado = carritoViewModel.agregar(producto)
                     mensaje = when {
                         agregado && esCurso -> "Curso agregado. Completa tu inscripción desde el carrito."
@@ -121,7 +122,7 @@ private fun DetalleContenido(
     onAgregar: () -> Unit,
     onCotizar: () -> Unit
 ) {
-    val esCurso = producto.categoria == Categoria.CURSO
+    val esCurso = producto is Curso
 
     Column(
         modifier = modifier
@@ -151,10 +152,21 @@ private fun DetalleContenido(
         // Ficha técnica
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                FilaDato(if (esCurso) "Cupos disponibles" else "Stock", producto.stock.toString())
-                FilaDato("Código", producto.codigoBarra)
-                if (!esCurso) FilaDato("Peso", "${producto.pesoKg} kg")
-                FilaDato("Envío", if (esCurso) "No aplica (curso)" else "Nacional e internacional")
+                // "when" sobre una sealed class: el compilador exige cubrir TODAS las subclases
+                when (producto) {
+                    is ProductoFisico -> {
+                        FilaDato("Stock", producto.stock.toString())
+                        FilaDato("Código", producto.codigoBarra)
+                        FilaDato("Peso", "${producto.pesoKg} kg")
+                        FilaDato("Envío", "Nacional e internacional")
+                    }
+                    is Curso -> {
+                        FilaDato("Cupos disponibles", producto.cupos.toString())
+                        FilaDato("Modalidad", producto.modalidad)
+                        FilaDato("Duración", "${producto.semanas} semanas")
+                        FilaDato("Envío", "No aplica (curso)")
+                    }
+                }
             }
         }
 
@@ -174,7 +186,7 @@ private fun DetalleContenido(
         ) {
             Icon(if (esCurso) Icons.Filled.School else Icons.Filled.AddShoppingCart, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
-            Text(if (esCurso) "Inscribirme" else "Agregar al carrito")
+            Text(producto.etiquetaAccion())   // polimorfismo: "Inscribirme" o "Agregar al carrito"
         }
 
         if (!esCurso) {
