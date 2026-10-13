@@ -15,17 +15,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -36,8 +38,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.appmuseo.utils.Validaciones
+import com.example.appmuseo.ui.components.CampoTexto
 import com.example.appmuseo.model.TipoDestino
 import com.example.appmuseo.ui.components.BarraSuperior
 import com.example.appmuseo.utils.CotizadorEnvio
@@ -99,28 +104,30 @@ fun CotizadorScreen(cotizadorViewModel: CotizadorViewModel, mainViewModel: MainV
                 }
             }
 
-            OutlinedTextField(
-                value = estado.peso,
-                onValueChange = cotizadorViewModel::onPesoChange,
-                label = { Text("Peso del paquete (kg)") },
-                placeholder = { Text("Ej: 1,5") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = estado.montoCompra,
-                onValueChange = cotizadorViewModel::onMontoCompraChange,
-                label = { Text("Monto de la compra (opcional)") },
-                supportingText = { Text("Envío nacional gratis desde ${formatearPrecio(CotizadorEnvio.MONTO_ENVIO_GRATIS)}") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            estado.error?.let {
-                Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+            // Error de la zona (los RadioButton no tienen "supportingText", así que va como texto)
+            estado.errores.zona?.let {
+                Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
             }
+
+            CampoTexto(
+                valor = estado.peso,
+                onValorChange = cotizadorViewModel::onPesoChange,
+                etiqueta = "Peso del paquete (kg)",
+                icono = Icons.Filled.Scale,
+                placeholder = "Ej: 1,5",
+                error = estado.errores.peso,
+                esValido = Validaciones.validarPeso(estado.peso) == null,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next)
+            )
+            CampoTexto(
+                valor = estado.montoCompra,
+                onValorChange = cotizadorViewModel::onMontoCompraChange,
+                etiqueta = "Monto de la compra (opcional)",
+                icono = Icons.Filled.Payments,
+                ayuda = "Envío nacional gratis desde ${formatearPrecio(CotizadorEnvio.MONTO_ENVIO_GRATIS)}",
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { cotizadorViewModel.calcular() })
+            )
 
             Button(
                 onClick = { cotizadorViewModel.calcular() },

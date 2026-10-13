@@ -15,13 +15,16 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -36,6 +39,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.appmuseo.utils.Validaciones
+import com.example.appmuseo.ui.components.CampoTexto
 import com.example.appmuseo.model.TipoDestino
 import com.example.appmuseo.navigation.Screen
 import com.example.appmuseo.ui.components.BarraSuperior
@@ -48,7 +53,7 @@ import com.example.appmuseo.viewmodel.SolicitudViewModel
 
 /**
  * FORMULARIO DE SOLICITUD de compra / inscripción (Guía 11):
- * OutlinedTextField + isError/supportingText, RadioButton para la zona y Checkbox de términos.
+ * CampoTexto (OutlinedTextField con isError/supportingText), RadioButton para la zona y Checkbox de términos.
  * Al confirmar, la solicitud se guarda en Room con estado PENDIENTE.
  */
 @Composable
@@ -91,24 +96,23 @@ fun SolicitudScreen(
         ) {
             Text("Datos de contacto", style = MaterialTheme.typography.titleMedium)
 
-            OutlinedTextField(
-                value = formulario.nombre,
-                onValueChange = solicitudViewModel::onNombreChange,
-                label = { Text("Nombre completo") },
-                isError = formulario.errores.nombre != null,
-                supportingText = { formulario.errores.nombre?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+            CampoTexto(
+                valor = formulario.nombre,
+                onValorChange = solicitudViewModel::onNombreChange,
+                etiqueta = "Nombre completo",
+                icono = Icons.Filled.Person,
+                error = formulario.errores.nombre,
+                esValido = Validaciones.validarNombre(formulario.nombre) == null,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
-            OutlinedTextField(
-                value = formulario.correo,
-                onValueChange = solicitudViewModel::onCorreoChange,
-                label = { Text("Correo electrónico") },
-                isError = formulario.errores.correo != null,
-                supportingText = { formulario.errores.correo?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
-                modifier = Modifier.fillMaxWidth()
+            CampoTexto(
+                valor = formulario.correo,
+                onValorChange = solicitudViewModel::onCorreoChange,
+                etiqueta = "Correo electrónico",
+                icono = Icons.Filled.Email,
+                error = formulario.errores.correo,
+                esValido = Validaciones.validarCorreo(formulario.correo) == null,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next)
             )
 
             // Los datos de despacho solo aparecen si hay productos físicos
@@ -148,13 +152,14 @@ fun SolicitudScreen(
                     Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 }
 
-                OutlinedTextField(
-                    value = formulario.direccion,
-                    onValueChange = solicitudViewModel::onDireccionChange,
-                    label = { Text("Dirección de despacho") },
-                    isError = formulario.errores.direccion != null,
-                    supportingText = { formulario.errores.direccion?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
-                    modifier = Modifier.fillMaxWidth()
+                CampoTexto(
+                    valor = formulario.direccion,
+                    onValorChange = solicitudViewModel::onDireccionChange,
+                    etiqueta = "Dirección de despacho",
+                    icono = Icons.Filled.Home,
+                    error = formulario.errores.direccion,
+                    esValido = formulario.direccion.isNotBlank(),
+                    placeholder = "Calle, número, comuna"
                 )
             }
 

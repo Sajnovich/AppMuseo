@@ -15,13 +15,13 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -30,17 +30,15 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.appmuseo.ui.components.CampoTexto
 import com.example.appmuseo.navigation.Screen
 import com.example.appmuseo.ui.components.BarraSuperior
 import com.example.appmuseo.ui.components.BotonesCamaraGaleria
@@ -66,8 +64,8 @@ fun EscanerScreen(
     val mensaje by escanerViewModel.mensaje.collectAsState()
     val itemsCarrito by carritoViewModel.items.collectAsState()
 
-    // Texto del campo manual: estado LOCAL de la pantalla (no necesita ViewModel)
-    var codigoManual by rememberSaveable { mutableStateOf("") }
+    val codigo by escanerViewModel.codigo.collectAsState()
+    val errorCodigo by escanerViewModel.errorCodigo.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -119,22 +117,23 @@ fun EscanerScreen(
             HorizontalDivider()
 
             // Ingreso manual: alternativa accesible si la cámara no está disponible
-            OutlinedTextField(
-                value = codigoManual,
-                onValueChange = { codigoManual = it },
-                label = { Text("Código manual (ej: MDM-001)") },
-                singleLine = true,
+            CampoTexto(
+                valor = codigo,
+                onValorChange = escanerViewModel::onCodigoChange,
+                etiqueta = "Código del producto",
+                icono = Icons.Filled.QrCode,
+                placeholder = "MDM-001",
+                error = errorCodigo,
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Characters,
                     imeAction = ImeAction.Search
                 ),
-                keyboardActions = KeyboardActions(onSearch = { escanerViewModel.buscarCodigo(codigoManual) }),
-                trailingIcon = {
-                    IconButton(onClick = { escanerViewModel.buscarCodigo(codigoManual) }) {
+                keyboardActions = KeyboardActions(onSearch = { escanerViewModel.buscarCodigo() }),
+                accionFinal = {
+                    IconButton(onClick = { escanerViewModel.buscarCodigo() }) {
                         Icon(Icons.Filled.Search, contentDescription = "Buscar código")
                     }
-                },
-                modifier = Modifier.fillMaxWidth()
+                }
             )
 
             mensaje?.let {

@@ -29,7 +29,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -48,6 +47,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.example.appmuseo.utils.Validaciones
+import com.example.appmuseo.ui.components.CampoTexto
 import com.example.appmuseo.model.ResultadoRegistro
 import com.example.appmuseo.model.TipoUsuario
 import com.example.appmuseo.ui.components.BarraSuperior
@@ -93,65 +94,52 @@ fun RegistroScreen(
         ) {
             Text("Tus datos", style = MaterialTheme.typography.titleMedium)
 
-            OutlinedTextField(
-                value = estado.nombre,
-                onValueChange = registroViewModel::onNombreChange,
-                label = { Text("Nombre completo") },
-                leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null) },
-                isError = estado.errores.nombre != null,
-                supportingText = { estado.errores.nombre?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                modifier = Modifier.fillMaxWidth()
+            CampoTexto(
+                valor = estado.nombre,
+                onValorChange = registroViewModel::onNombreChange,
+                etiqueta = "Nombre completo",
+                icono = Icons.Filled.Person,
+                error = estado.errores.nombre,
+                esValido = Validaciones.validarNombre(estado.nombre) == null,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
-            OutlinedTextField(
-                value = estado.correo,
-                onValueChange = registroViewModel::onCorreoChange,
-                label = { Text("Correo electrónico") },
-                leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null) },
-                isError = estado.errores.correo != null,
-                supportingText = { estado.errores.correo?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
-                modifier = Modifier.fillMaxWidth()
+            CampoTexto(
+                valor = estado.correo,
+                onValorChange = registroViewModel::onCorreoChange,
+                etiqueta = "Correo electrónico",
+                icono = Icons.Filled.Email,
+                error = estado.errores.correo,
+                esValido = Validaciones.validarCorreo(estado.correo) == null,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next)
             )
-            OutlinedTextField(
-                value = estado.clave,
-                onValueChange = registroViewModel::onClaveChange,
-                label = { Text("Contraseña") },
-                leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
-                trailingIcon = {
+            CampoTexto(
+                valor = estado.clave,
+                onValorChange = registroViewModel::onClaveChange,
+                etiqueta = "Contraseña",
+                icono = Icons.Filled.Lock,
+                error = estado.errores.clave,
+                ayuda = "Mínimo 6 caracteres, con letras y números",
+                visualTransformation = if (mostrarClave) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+                accionFinal = {
                     IconButton(onClick = { mostrarClave = !mostrarClave }) {
                         Icon(
                             if (mostrarClave) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
                             contentDescription = if (mostrarClave) "Ocultar contraseña" else "Mostrar contraseña"
                         )
                     }
-                },
-                visualTransformation = if (mostrarClave) VisualTransformation.None else PasswordVisualTransformation(),
-                isError = estado.errores.clave != null,
-                supportingText = {
-                    Text(
-                        estado.errores.clave ?: "Mínimo 6 caracteres, con letras y números",
-                        color = if (estado.errores.clave != null) MaterialTheme.colorScheme.error
-                        else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
-                modifier = Modifier.fillMaxWidth()
+                }
             )
-            OutlinedTextField(
-                value = estado.confirmarClave,
-                onValueChange = registroViewModel::onConfirmarClaveChange,
-                label = { Text("Repetir contraseña") },
-                leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
+            CampoTexto(
+                valor = estado.confirmarClave,
+                onValorChange = registroViewModel::onConfirmarClaveChange,
+                etiqueta = "Repetir contraseña",
+                icono = Icons.Filled.Lock,
+                error = estado.errores.confirmarClave,
+                esValido = estado.confirmarClave.isNotEmpty() &&
+                        Validaciones.validarConfirmacion(estado.clave, estado.confirmarClave) == null,
                 visualTransformation = if (mostrarClave) VisualTransformation.None else PasswordVisualTransformation(),
-                isError = estado.errores.confirmarClave != null,
-                supportingText = { estado.errores.confirmarClave?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                modifier = Modifier.fillMaxWidth()
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done)
             )
 
             // Perfil de usuario (los tres perfiles externos del caso)
