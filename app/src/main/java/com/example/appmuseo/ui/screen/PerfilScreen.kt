@@ -32,6 +32,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +43,7 @@ import com.example.appmuseo.navigation.Screen
 import com.example.appmuseo.ui.components.BarraInferior
 import com.example.appmuseo.ui.components.BarraSuperior
 import com.example.appmuseo.ui.components.BotonesCamaraGaleria
+import com.example.appmuseo.ui.components.DialogoCerrarSesion
 import com.example.appmuseo.ui.components.ImagenInteligente
 import com.example.appmuseo.ui.theme.AmbarPendiente
 import com.example.appmuseo.ui.theme.VerdeCompletado
@@ -51,7 +54,7 @@ import com.example.appmuseo.viewmodel.SesionViewModel
 
 /**
  * PERFIL: foto con cámara o galería (Guía 13), preferencia guardada en DataStore con
- * color animado y texto derivado (Guía 12), y cierre de sesión.
+ * color animado y texto derivado (Guía 12), y cierre de sesión con confirmación.
  */
 @Composable
 fun PerfilScreen(
@@ -64,6 +67,20 @@ fun PerfilScreen(
     val imagenUri by perfilViewModel.imagenUri.collectAsState()
     val notificaciones by perfilViewModel.notificacionesActivas.collectAsState()
     val mostrarMensaje by perfilViewModel.mostrarMensaje.collectAsState()
+
+    var mostrarDialogoSalir by remember { mutableStateOf(false) }
+    if (mostrarDialogoSalir) {
+        DialogoCerrarSesion(
+            onConfirmar = {
+                mostrarDialogoSalir = false
+                sesionViewModel.cerrarSesion()
+                carritoViewModel.vaciar()
+                // popUpTo Home inclusive: se borra todo el historial y "atrás" no vuelve a la app
+                mainViewModel.navigateTo(Screen.Login, popUpToRoute = Screen.Home, inclusive = true)
+            },
+            onCancelar = { mostrarDialogoSalir = false }
+        )
+    }
 
     Scaffold(
         topBar = { BarraSuperior(titulo = "Mi perfil") },
@@ -137,12 +154,7 @@ fun PerfilScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
-                onClick = {
-                    sesionViewModel.cerrarSesion()
-                    carritoViewModel.vaciar()
-                    // popUpTo Home inclusive: se borra todo el historial y "atrás" no vuelve a la app
-                    mainViewModel.navigateTo(Screen.Login, popUpToRoute = Screen.Home, inclusive = true)
-                },
+                onClick = { mostrarDialogoSalir = true },   // primero se pide confirmación
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, modifier = Modifier.size(20.dp))

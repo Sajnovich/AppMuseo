@@ -35,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,6 +48,7 @@ import com.example.appmuseo.data.local.SolicitudEntity
 import com.example.appmuseo.navigation.Screen
 import com.example.appmuseo.ui.components.BarraInferior
 import com.example.appmuseo.ui.components.BarraSuperior
+import com.example.appmuseo.ui.components.DialogoConfirmacion
 import com.example.appmuseo.ui.components.NotificacionSimulada
 import com.example.appmuseo.ui.theme.AmbarPendiente
 import com.example.appmuseo.ui.theme.VerdeCompletado
@@ -68,6 +70,23 @@ fun MisSolicitudesScreen(solicitudViewModel: SolicitudViewModel, mainViewModel: 
     // Filtro local de la pantalla: null = todas
     var filtroEstado by rememberSaveable { mutableStateOf<String?>(null) }
     val visibles = if (filtroEstado == null) solicitudes else solicitudes.filter { it.estado == filtroEstado }
+
+    // Solicitud que el usuario quiere eliminar (null = no se muestra el diálogo)
+    var solicitudAEliminar by remember { mutableStateOf<SolicitudEntity?>(null) }
+    solicitudAEliminar?.let { solicitud ->
+        DialogoConfirmacion(
+            titulo = "¿Eliminar la solicitud #${solicitud.id}?",
+            mensaje = "Se borrará del historial de este teléfono. Esta acción no se puede deshacer.",
+            icono = Icons.Filled.Delete,
+            textoConfirmar = "Eliminar",
+            esDestructiva = true,
+            onConfirmar = {
+                solicitudViewModel.eliminar(solicitud)
+                solicitudAEliminar = null
+            },
+            onCancelar = { solicitudAEliminar = null }
+        )
+    }
 
     Scaffold(
         topBar = { BarraSuperior(titulo = "Mis solicitudes") },
@@ -120,8 +139,9 @@ fun MisSolicitudesScreen(solicitudViewModel: SolicitudViewModel, mainViewModel: 
                     items(visibles, key = { it.id }) { solicitud ->
                         TarjetaSolicitud(
                             solicitud = solicitud,
+                            modifier = Modifier.animateItem(),
                             onCompletar = { solicitudViewModel.marcarCompletada(solicitud) },
-                            onEliminar = { solicitudViewModel.eliminar(solicitud) }
+                            onEliminar = { solicitudAEliminar = solicitud }   // primero se pide confirmación
                         )
                     }
                 }
@@ -134,7 +154,8 @@ fun MisSolicitudesScreen(solicitudViewModel: SolicitudViewModel, mainViewModel: 
 private fun TarjetaSolicitud(
     solicitud: SolicitudEntity,
     onCompletar: () -> Unit,
-    onEliminar: () -> Unit
+    onEliminar: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val completada = solicitud.estado == EstadoSolicitud.COMPLETADA
     // El color del estado cambia con una animación suave (Guía 12: animateColorAsState)
@@ -144,7 +165,7 @@ private fun TarjetaSolicitud(
         label = "colorEstado"
     )
 
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(

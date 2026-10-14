@@ -137,6 +137,8 @@ fun CatalogoScreen(
                     items(productos, key = { it.id }) { producto ->
                         TarjetaProducto(
                             producto = producto,
+                            // animateItem: al filtrar, las tarjetas se reacomodan con animación
+                            modifier = Modifier.animateItem(),
                             onVerDetalle = { mainViewModel.navigateTo(Screen.Detalle(producto.id)) },
                             onAgregar = {
                                 val agregado = carritoViewModel.agregar(producto)

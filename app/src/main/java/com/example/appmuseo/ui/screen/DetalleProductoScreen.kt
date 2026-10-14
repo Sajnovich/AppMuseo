@@ -36,6 +36,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.appmuseo.model.Curso
@@ -123,6 +125,7 @@ private fun DetalleContenido(
     onCotizar: () -> Unit
 ) {
     val esCurso = producto is Curso
+    val haptic = LocalHapticFeedback.current   // vibración corta al agregar
 
     Column(
         modifier = modifier
@@ -179,7 +182,10 @@ private fun DetalleContenido(
         }
 
         Button(
-            onClick = onAgregar,
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onAgregar()
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp)

@@ -29,6 +29,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -86,6 +88,9 @@ fun TarjetaProducto(
     onAgregar: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Vibración corta del teléfono al agregar: retroalimentación física de la acción
+    val haptic = LocalHapticFeedback.current
+
     Card(
         onClick = onVerDetalle,
         modifier = modifier.fillMaxWidth(),
@@ -126,7 +131,10 @@ fun TarjetaProducto(
                 )
             }
 
-            FilledTonalIconButton(onClick = onAgregar) {
+            FilledTonalIconButton(onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onAgregar()
+            }) {
                 Icon(Icons.Filled.AddShoppingCart, contentDescription = "Agregar ${producto.nombre} al carrito")
             }
         }
