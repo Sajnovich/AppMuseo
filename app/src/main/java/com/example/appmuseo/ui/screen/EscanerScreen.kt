@@ -1,6 +1,12 @@
 package com.example.appmuseo.ui.screen
 
 import androidx.compose.animation.AnimatedVisibility
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
+import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
+import com.google.mlkit.vision.barcode.common.Barcode
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.Button
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -68,6 +74,7 @@ fun EscanerScreen(
     val errorCodigo by escanerViewModel.errorCodigo.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -91,7 +98,7 @@ fun EscanerScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                "Toma una foto del código de barras del producto. La lectura del código es simulada.",
+                "Escanea el código QR o de barras del producto con la cámara, o escríbelo a mano.",
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
             )
@@ -104,11 +111,27 @@ fun EscanerScreen(
                 iconoPorDefecto = Icons.Filled.QrCodeScanner
             )
 
-            // Solo cámara (sin galería): el escaneo se hace en el momento
+            // LECTURA REAL con el lector de Google (no pide permiso de cámara: lo maneja Google Play services)
+            Button(
+                onClick = {
+                    escanearCodigo(
+                        context = context,
+                        alLeer = { texto -> escanerViewModel.onCodigoLeido(texto) },
+                        alFallar = { error -> escanerViewModel.onErrorEscaneo(error) }
+                    )
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Filled.QrCodeScanner, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Escanear código QR o de barras")
+            }
+
+            // Respaldo: foto + lectura simulada (útil en el emulador, que no tiene códigos reales)
             BotonesCamaraGaleria(
                 onImagenObtenida = { uri -> escanerViewModel.onFotoCapturada(uri) },
                 mostrarGaleria = false,
-                textoCamara = "Escanear con cámara"
+                textoCamara = "Foto del producto"
             )
             TextButton(onClick = { escanerViewModel.simularLectura() }) {
                 Text("Simular lectura sin cámara (emulador)")
@@ -161,4 +184,25 @@ fun EscanerScreen(
             }
         }
     }
+}
+
+/**
+ * Abre el lector de códigos de Google (Google Code Scanner, ejemplo 105 del curso).
+ * Google Play services muestra su propia pantalla de cámara y devuelve el texto leído,
+ * por eso la app NO necesita pedir el permiso de cámara para esta función.
+ */
+private fun escanearCodigo(
+    context: Context,
+    alLeer: (String) -> Unit,
+    alFallar: (String) -> Unit
+) {
+    val opciones = GmsBarcodeScannerOptions.Builder()
+        .setBarcodeFormats(Barcode.FORMAT_QR_CODE, Barcode.FORMAT_CODE_128)
+        .build()
+
+    GmsBarcodeScanning.getClient(context, opciones)
+        .startScan()
+        .addOnSuccessListener { codigo -> alLeer(codigo.rawValue ?: "") }
+        .addOnCanceledListener { alFallar("Escaneo cancelado.") }
+        .addOnFailureListener { error -> alFallar("No se pudo escanear: ${error.message}") }
 }

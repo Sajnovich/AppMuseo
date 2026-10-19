@@ -60,6 +60,8 @@ dependencies {
 
     // --- Íconos adicionales de Material (Map, Museum, School, QrCodeScanner, etc.) ---
     implementation("androidx.compose.material:material-icons-extended")
+    // Lector de códigos QR y de barras de Google (ML Kit / Google Play services), igual que el ejemplo 105 del curso
+    implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
 
     // --- Dependencias que trae la plantilla "Empty Compose Activity" ---
     implementation(libs.androidx.core.ktx)
