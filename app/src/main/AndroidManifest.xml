@@ -3,11 +3,12 @@
 
     <!-- La cámara es opcional: la app se puede instalar en equipos sin cámara -->
     <uses-feature
-        android:name="android.hardware.camera"
+        android:name="android.hardware.camera.any"
         android:required="false" />
 
-    <!-- Permiso "peligroso": además de declararlo aquí, se pide en tiempo de ejecución (BotonesCamaraGaleria.kt) -->
-    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Permiso CAMERA: NO se declara a propósito (igual que el ejemplo 103 del curso).
+         La app no controla la cámara: le pide a la app de Cámara que tome la foto (TakePicture).
+         Si se declarara CAMERA sin concederlo, Android BLOQUEARÍA ese pedido. -->
     <!-- Ubicación APROXIMADA (no la precisa): basta para saber qué museo queda más cerca
          y cuida la privacidad. También es "peligroso": se pide en MapaMuseosScreen.kt -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -20,7 +21,19 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- osmdroid revisa si hay conexión antes de descargar las baldosas del mapa -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- Nota: la galería (GetContent) NO necesita permiso de almacenamiento en Android moderno -->
+    <!-- La galería usa el selector de fotos (PickVisualMedia): NO necesita permisos de almacenamiento -->
+
+    <!-- Desde Android 11 una app no "ve" las otras apps instaladas: declaramos que
+         necesitamos encontrar una app de cámara y una de mapas -->
+    <queries>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="geo" />
+        </intent>
+    </queries>
 
     <application
         android:allowBackup="true"
