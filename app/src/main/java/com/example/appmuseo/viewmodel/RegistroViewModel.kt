@@ -40,6 +40,10 @@ class RegistroViewModel(
         _estado.update { it.copy(tipoUsuario = tipo, errores = it.errores.copy(tipoUsuario = null)) }
     }
 
+    fun onAvatarChange(indice: Int) {
+        _estado.update { it.copy(avatar = indice) }
+    }
+
     fun onAceptaTerminosChange(valor: Boolean) {
         _estado.update { it.copy(aceptaTerminos = valor, errores = it.errores.copy(terminos = null)) }
     }
@@ -61,9 +65,14 @@ class RegistroViewModel(
                 nombre = actual.nombre,
                 correo = actual.correo,
                 clave = actual.clave,
-                tipoUsuario = actual.tipoUsuario?.etiqueta ?: ""
+                tipoUsuario = actual.tipoUsuario?.etiqueta ?: "",
+                avatar = actual.avatar
             )
-            _estado.update { it.copy(resultado = resultado) }
+            // si el correo ya esta en uso se marca en rojo el campo correo
+            val errorCorreo = (resultado as? ResultadoRegistro.Error)?.mensaje?.takeIf { it.contains("correo") }
+            _estado.update {
+                it.copy(resultado = resultado, errores = if (errorCorreo != null) it.errores.copy(correo = errorCorreo) else it.errores)
+            }
         }
     }
 

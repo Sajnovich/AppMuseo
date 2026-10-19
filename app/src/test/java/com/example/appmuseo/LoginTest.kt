@@ -10,6 +10,8 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlinx.coroutines.delay
+import com.example.appmuseo.model.Rol
 
 class LoginTest {
 
@@ -65,5 +67,25 @@ class LoginTest {
         viewModel.onCorreoChange("admin@museo.cl")
 
         assertNull(viewModel.estado.value.errores.correo)
+    }
+
+    @Test
+    fun viewModel_cuentaDeOtroRol_noDejaEntrar() = runBlocking {
+        val viewModel = LoginViewModel(AuthRepository(demoraMs = 0))
+        viewModel.onRolChange(Rol.INVESTIGADOR)
+        viewModel.onCorreoChange("admin@museo.cl")
+        viewModel.onClaveChange("museo123")
+
+        viewModel.iniciarSesion()
+        delay(100)
+
+        assertTrue(viewModel.estado.value.resultado is ResultadoLogin.Error)
+    }
+
+    @Test
+    fun login_usuarioDePrueba_traeSuRol() = runBlocking {
+        val resultado = AuthRepository(demoraMs = 0).login("investigador@museo.cl", "inves2026")
+
+        assertEquals(Rol.INVESTIGADOR, (resultado as ResultadoLogin.Exito).perfil.rol)
     }
 }

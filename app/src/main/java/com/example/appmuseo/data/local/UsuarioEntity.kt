@@ -9,5 +9,6 @@ data class UsuarioEntity(
     val nombre: String,
     val claveHash: String,
     val tipoUsuario: String,
+    val avatar: Int = 0,
     val fechaRegistro: Long = System.currentTimeMillis()
 )

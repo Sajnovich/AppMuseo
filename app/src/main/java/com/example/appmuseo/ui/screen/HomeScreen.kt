@@ -81,7 +81,7 @@ fun HomeScreen(
                 mostrarDialogoSalir = false
                 sesionViewModel.cerrarSesion()
                 carritoViewModel.vaciar()
-                mainViewModel.navigateTo(Screen.Login, popUpToRoute = Screen.Home, inclusive = true)
+                mainViewModel.navigateTo(Screen.Bienvenida, popUpToRoute = Screen.Home, inclusive = true)
             },
             onCancelar = { mostrarDialogoSalir = false }
         )

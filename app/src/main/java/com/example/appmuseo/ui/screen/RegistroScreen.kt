@@ -1,5 +1,14 @@
 package com.example.appmuseo.ui.screen
 
+import com.example.appmuseo.ui.components.SelectorAvatar
+import com.example.appmuseo.ui.components.AvatarCirculo
+import com.example.appmuseo.navigation.Screen
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -72,12 +81,13 @@ fun RegistroScreen(
         if (resultado is ResultadoRegistro.Exito) {
             loginViewModel.prepararTrasRegistro(resultado.correo)
             registroViewModel.limpiarFormulario()
-            mainViewModel.navigateBack()
+            // queda: bienvenida -> login (con el correo ya escrito)
+            mainViewModel.navigateTo(Screen.Login, popUpToRoute = Screen.Bienvenida)
         }
     }
 
     Scaffold(
-        topBar = { BarraSuperior(titulo = "Crear cuenta", onVolver = { mainViewModel.navigateBack() }) }
+        topBar = { BarraSuperior(titulo = "Registro", onVolver = { mainViewModel.navigateBack() }) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -88,6 +98,34 @@ fun RegistroScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            Icon(
+                Icons.Filled.AccountBalance,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(48.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
+            Text(
+                "Crear tu cuenta",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            Text(
+                "Únete a la comunidad de Museo de los Museos",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            AvatarCirculo(
+                indice = estado.avatar,
+                tamano = 84.dp,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            Text("Selecciona un avatar", style = MaterialTheme.typography.titleSmall)
+            SelectorAvatar(seleccionado = estado.avatar, onSeleccionar = registroViewModel::onAvatarChange)
+            Spacer(modifier = Modifier.height(4.dp))
             Text("Tus datos", style = MaterialTheme.typography.titleMedium)
 
             CampoTexto(
@@ -178,6 +216,32 @@ fun RegistroScreen(
                 Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
             }
 
+            // resumen: que campos obligatorios faltan o estan mal
+            val faltantes = estado.errores.camposConError()
+            AnimatedVisibility(visible = faltantes.isNotEmpty()) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
+                        Icon(Icons.Filled.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                "Revisa los campos obligatorios",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                            Text(
+                                faltantes.joinToString(" · "),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                    }
+                }
+            }
+
             val resultado = estado.resultado
             AnimatedVisibility(visible = resultado is ResultadoRegistro.Error) {
                 Text(
@@ -191,6 +255,7 @@ fun RegistroScreen(
             Button(
                 onClick = { registroViewModel.registrar() },
                 enabled = !registrando,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
@@ -198,12 +263,18 @@ fun RegistroScreen(
                 if (registrando) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = MaterialTheme.colorScheme.onSecondary,
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("Crear cuenta")
+                    Text("Registrarme")
                 }
+            }
+            TextButton(
+                onClick = { mainViewModel.navigateTo(Screen.Login, popUpToRoute = Screen.Bienvenida) },
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            ) {
+                Text("¿Ya tienes cuenta? Inicia sesión")
             }
         }
     }

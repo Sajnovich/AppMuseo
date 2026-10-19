@@ -3,9 +3,11 @@ package com.example.appmuseo.data
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.appmuseo.model.PerfilUsuario
+import com.example.appmuseo.model.Rol
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -18,6 +20,8 @@ class SesionDataStore(private val context: Context) {
     private val NOMBRE = stringPreferencesKey("nombre_usuario")
     private val CORREO = stringPreferencesKey("correo_usuario")
     private val TIPO = stringPreferencesKey("tipo_usuario")
+    private val ROL = stringPreferencesKey("rol_usuario")
+    private val AVATAR = intPreferencesKey("avatar_usuario")
     private val NOTIFICACIONES = booleanPreferencesKey("notificaciones_activas")
 
     suspend fun guardarSesion(perfil: PerfilUsuario) {
@@ -26,6 +30,8 @@ class SesionDataStore(private val context: Context) {
             preferencias[NOMBRE] = perfil.nombre
             preferencias[CORREO] = perfil.correo
             preferencias[TIPO] = perfil.tipoUsuario
+            preferencias[ROL] = perfil.rol.name
+            preferencias[AVATAR] = perfil.avatar
         }
     }
 
@@ -35,6 +41,8 @@ class SesionDataStore(private val context: Context) {
             preferencias.remove(NOMBRE)
             preferencias.remove(CORREO)
             preferencias.remove(TIPO)
+            preferencias.remove(ROL)
+            preferencias.remove(AVATAR)
         }
     }
 
@@ -46,7 +54,9 @@ class SesionDataStore(private val context: Context) {
             PerfilUsuario(
                 nombre = preferencias[NOMBRE] ?: "",
                 correo = preferencias[CORREO] ?: "",
-                tipoUsuario = preferencias[TIPO] ?: ""
+                tipoUsuario = preferencias[TIPO] ?: "",
+                rol = Rol.entries.find { it.name == preferencias[ROL] } ?: Rol.CLIENTE,
+                avatar = preferencias[AVATAR] ?: 0
             )
         }
 

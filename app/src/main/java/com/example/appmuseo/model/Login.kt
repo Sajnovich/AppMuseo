@@ -1,9 +1,18 @@
 package com.example.appmuseo.model
 
+// roles del caso: cada uno ve solo sus funciones
+enum class Rol(val etiqueta: String, val descripcion: String) {
+    ADMINISTRADOR("Administrador", "Gestión completa del sistema"),
+    INVESTIGADOR("Investigador", "Acceso a contenidos y proyectos"),
+    CLIENTE("Cliente", "Explora, aprende y compra")
+}
+
 data class PerfilUsuario(
     val nombre: String,
     val correo: String,
-    val tipoUsuario: String
+    val tipoUsuario: String,
+    val rol: Rol = Rol.CLIENTE,
+    val avatar: Int = 0
 )
 
 sealed class ResultadoLogin {
@@ -17,7 +26,8 @@ data class LoginUiState(
     val clave: String = "",
     val errores: LoginErrores = LoginErrores(),
     val resultado: ResultadoLogin? = null,
-    val aviso: String? = null
+    val aviso: String? = null,
+    val rolSeleccionado: Rol? = null
 )
 
 data class LoginErrores(
@@ -47,6 +57,7 @@ data class RegistroUiState(
     val clave: String = "",
     val confirmarClave: String = "",
     val tipoUsuario: TipoUsuario? = null,
+    val avatar: Int = 0,
     val aceptaTerminos: Boolean = false,
     val errores: RegistroErrores = RegistroErrores(),
     val resultado: ResultadoRegistro? = null
@@ -62,4 +73,14 @@ data class RegistroErrores(
 ) {
     fun hayErrores(): Boolean =
         listOfNotNull(nombre, correo, clave, confirmarClave, tipoUsuario, terminos).isNotEmpty()
+
+    // nombres de los campos con problemas, para el aviso de arriba del boton
+    fun camposConError(): List<String> = listOfNotNull(
+        if (nombre != null) "Nombre" else null,
+        if (correo != null) "Correo" else null,
+        if (clave != null) "Contraseña" else null,
+        if (confirmarClave != null) "Repetir contraseña" else null,
+        if (tipoUsuario != null) "Perfil" else null,
+        if (terminos != null) "Términos y condiciones" else null
+    )
 }
