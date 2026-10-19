@@ -18,6 +18,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Queda declarado para la Unidad 3 (consumo de API REST con Retrofit) -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- osmdroid revisa si hay conexión antes de descargar las baldosas del mapa -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Nota: la galería (GetContent) NO necesita permiso de almacenamiento en Android moderno -->
 
     <application

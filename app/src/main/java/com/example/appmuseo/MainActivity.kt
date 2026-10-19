@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import com.example.appmuseo.navigation.AppNavigation
 import com.example.appmuseo.ui.theme.MuseoTheme
 import com.example.appmuseo.utils.Notificaciones
+import org.osmdroid.config.Configuration
 
 /**
  * Punto de entrada de la app. Solo aplica el tema y arranca la navegación;
@@ -20,7 +21,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()   // la app dibuja detrás de la barra de estado (como en la Guía 11)
-        Notificaciones.crearCanal(this)   // canal de notificaciones (obligatorio desde Android 8)
+        Notificaciones.crearCanal(this)
+        // osmdroid exige identificar la app ante los servidores de OpenStreetMap (antes de crear el mapa)
+        Configuration.getInstance().userAgentValue = packageName   // canal de notificaciones (obligatorio desde Android 8)
         setContent {
             MuseoTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
