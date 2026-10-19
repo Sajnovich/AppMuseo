@@ -1,7 +1,6 @@
 package com.example.appmuseo.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.example.appmuseo.model.Categoria
 import com.example.appmuseo.model.ItemCarrito
 import com.example.appmuseo.model.Producto
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +24,8 @@ class CarritoViewModel : ViewModel() {
     fun agregar(producto: Producto): Boolean {
         val itemActual = _items.value.find { it.producto.id == producto.id }
         val cantidadActual = itemActual?.cantidad ?: 0
-        val limite = if (producto.categoria == Categoria.CURSO) 1 else producto.stock
+        // Polimorfismo: un ProductoFisico responde con su stock y un Curso con 1
+        val limite = producto.limiteCompra()
 
         if (cantidadActual >= limite) return false
 

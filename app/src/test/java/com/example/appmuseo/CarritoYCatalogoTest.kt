@@ -1,12 +1,15 @@
 package com.example.appmuseo
 
 import com.example.appmuseo.model.Categoria
+import com.example.appmuseo.model.Curso
+import com.example.appmuseo.model.ProductoFisico
 import com.example.appmuseo.repository.CatalogoRepository
 import com.example.appmuseo.utils.formatearPrecio
 import com.example.appmuseo.viewmodel.CarritoViewModel
 import com.example.appmuseo.viewmodel.CatalogoViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -73,7 +76,8 @@ class CarritoYCatalogoTest {
     @Test
     fun carrito_noSuperaElStock() {
         val carrito = CarritoViewModel()
-        val cajaConservacion = repositorio.buscarPorId(6)!!   // stock 8
+        // "as ProductoFisico": convertimos al tipo hijo para leer su stock
+        val cajaConservacion = repositorio.buscarPorId(6) as ProductoFisico   // stock 8
 
         repeat(cajaConservacion.stock) { carrito.agregar(cajaConservacion) }
 
@@ -109,6 +113,35 @@ class CarritoYCatalogoTest {
         carrito.agregar(curso)   // el curso pesa 0
 
         assertEquals(0.8, carrito.pesoTotalKg(), 0.0001)
+    }
+
+    // ── POO: herencia y polimorfismo ──
+
+    @Test
+    fun catalogo_tieneProductosDeAmbasSubclases() {
+        val catalogo = repositorio.obtenerCatalogo()
+
+        assertTrue(catalogo.any { it is ProductoFisico })
+        assertTrue(catalogo.any { it is Curso })
+    }
+
+    @Test
+    fun polimorfismo_cadaSubclaseDefineSuLimiteYSuAccion() {
+        val caja = repositorio.buscarPorId(6) as ProductoFisico
+
+        assertEquals(caja.stock, caja.limiteCompra())        // ProductoFisico → su stock
+        assertEquals(1, curso.limiteCompra())                 // Curso → una inscripción
+        assertEquals("Inscribirme", curso.etiquetaAccion())   // Curso sobrescribe el texto
+        assertEquals("Agregar al carrito", caja.etiquetaAccion())
+        assertFalse(curso.requiereEnvio)
+        assertTrue(caja.requiereEnvio)
+    }
+
+    @Test
+    fun productoFisico_noPuedeCrearseComoCurso() {
+        assertThrows(IllegalArgumentException::class.java) {
+            ProductoFisico(99, "Prueba", "-", 1_000, Categoria.CURSO, 1, 0.1, "MDM-099")
+        }
     }
 
     @Test

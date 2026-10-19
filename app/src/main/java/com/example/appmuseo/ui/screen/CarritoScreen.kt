@@ -35,7 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.appmuseo.model.Categoria
+import com.example.appmuseo.model.Curso
 import com.example.appmuseo.model.ItemCarrito
 import com.example.appmuseo.navigation.Screen
 import com.example.appmuseo.ui.components.BarraSuperior
@@ -136,7 +136,7 @@ private fun FilaCarrito(
     onRestar: () -> Unit,
     onEliminar: () -> Unit
 ) {
-    val esCurso = item.producto.categoria == Categoria.CURSO
+    val esCurso = item.producto is Curso
 
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {

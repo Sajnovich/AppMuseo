@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.appmuseo.model.Categoria
 import com.example.appmuseo.model.Producto
+import com.example.appmuseo.model.ProductoFisico
 import com.example.appmuseo.ui.theme.MuseoTheme
 import com.example.appmuseo.utils.formatearPrecio
 
@@ -119,7 +120,7 @@ fun TarjetaProducto(
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = if (producto.categoria == Categoria.CURSO) "${producto.stock} cupos" else "Stock: ${producto.stock}",
+                    text = producto.disponibilidad(),   // polimorfismo: cada subclase arma su texto
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -137,7 +138,7 @@ fun TarjetaProducto(
 fun TarjetaProductoPreview() {
     MuseoTheme {
         TarjetaProducto(
-            producto = Producto(1, "Taza Museo de los Museos", "Taza de cerámica", 8_990, Categoria.MERCH, 25, 0.4, "MDM-001"),
+            producto = ProductoFisico(1, "Taza Museo de los Museos", "Taza de cerámica", 8_990, Categoria.MERCH, 25, 0.4, "MDM-001"),
             onVerDetalle = {},
             onAgregar = {}
         )

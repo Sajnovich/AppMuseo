@@ -2,7 +2,7 @@ package com.example.appmuseo.viewmodel
 
 import android.net.Uri
 import androidx.lifecycle.ViewModel
-import com.example.appmuseo.model.Producto
+import com.example.appmuseo.model.ProductoFisico
 import com.example.appmuseo.repository.CatalogoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,8 +19,9 @@ class EscanerViewModel(
     private val _fotoUri = MutableStateFlow<Uri?>(null)
     val fotoUri: StateFlow<Uri?> = _fotoUri
 
-    private val _productoDetectado = MutableStateFlow<Producto?>(null)
-    val productoDetectado: StateFlow<Producto?> = _productoDetectado
+    // Solo un ProductoFisico tiene código de barras, por eso el tipo es esa subclase
+    private val _productoDetectado = MutableStateFlow<ProductoFisico?>(null)
+    val productoDetectado: StateFlow<ProductoFisico?> = _productoDetectado
 
     private val _mensaje = MutableStateFlow<String?>(null)
     val mensaje: StateFlow<String?> = _mensaje
@@ -34,7 +35,7 @@ class EscanerViewModel(
 
     /** "Lee" el siguiente producto físico del catálogo (los cursos no tienen código impreso). */
     fun simularLectura() {
-        val productosFisicos = repositorio.obtenerCatalogo().filter { it.requiereEnvio }
+        val productosFisicos = repositorio.obtenerProductosFisicos()
         val producto = productosFisicos[indiceSimulado % productosFisicos.size]
         indiceSimulado++
         _productoDetectado.value = producto

@@ -7,7 +7,7 @@ import com.example.appmuseo.data.SesionDataStore
 import com.example.appmuseo.data.local.AppDatabase
 import com.example.appmuseo.data.local.EstadoSolicitud
 import com.example.appmuseo.data.local.SolicitudEntity
-import com.example.appmuseo.model.Categoria
+import com.example.appmuseo.model.Curso
 import com.example.appmuseo.model.ItemCarrito
 import com.example.appmuseo.model.SolicitudUiState
 import com.example.appmuseo.model.TipoDestino
@@ -137,7 +137,7 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
         val subtotal = items.sumOf { it.subtotal }
         val costoEnvio = if (requiereEnvio) form.cotizacion?.costoEnvio ?: 0 else 0
 
-        val hayCursos = items.any { it.producto.categoria == Categoria.CURSO }
+        val hayCursos = items.any { it.producto is Curso }   // "is" pregunta por la subclase
         val tipo = when {
             hayCursos && !requiereEnvio -> "INSCRIPCIÓN"
             hayCursos && requiereEnvio -> "COMPRA + INSCRIPCIÓN"
