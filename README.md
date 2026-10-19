@@ -101,8 +101,8 @@ si el usuario dice que no, la app sigue funcionando y le explica qué pasó.
 
 | Recurso | Para qué se usa | Permiso y manejo seguro | Archivo |
 |---|---|---|---|
-| Cámara | Foto de perfil y escáner de productos | `CAMERA` pedido al tocar "Cámara"; la foto se guarda con un `Uri` de `FileProvider` (sin exponer rutas) | `BotonesCamaraGaleria.kt`, `ImagenUtils.kt` |
-| Galería | Elegir foto de perfil | No necesita permiso (selector del sistema); si cancela, no pasa nada | `BotonesCamaraGaleria.kt` |
+| Cámara | Foto de perfil y foto del producto | La foto la toma la app de Cámara (`TakePicture`) en un `Uri` de `FileProvider`; **no** se declara `CAMERA` (si se declarara sin concederlo, Android bloquearía la cámara); `<queries>` para encontrar la app | `BotonesCamaraGaleria.kt`, `ImagenUtils.kt` |
+| Galería | Elegir foto de perfil | Selector de fotos `PickVisualMedia`: sin permisos de almacenamiento; si cancela, no pasa nada | `BotonesCamaraGaleria.kt` |
 | Ubicación | "Museo más cercano a mí" en el mapa | Solo ubicación **aproximada** (`ACCESS_COARSE_LOCATION`); sin permiso o sin señal se usa Santiago como referencia y se avisa | `UbicacionUtils.kt`, `MapaMuseosScreen.kt` |
 | Notificaciones | Avisar cuando una solicitud se registra o se completa | `POST_NOTIFICATIONS` (Android 13+) pedido al confirmar una solicitud o al activarlas en Perfil; sin permiso, el aviso se ve dentro de la app | `Notificaciones.kt`, `SolicitudViewModel.kt` |
 | Vibración | Confirmar físicamente "agregar al carrito" | Retroalimentación háptica de Compose, no requiere permiso | `TarjetaProducto.kt`, `DetalleProductoScreen.kt` |
