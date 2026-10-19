@@ -52,6 +52,23 @@ class EscanerViewModel(
         _mensaje.value = "Código leído (simulado): ${producto.codigoBarra}"
     }
 
+    /**
+     * Lectura REAL: el lector de Google entrega el texto del QR o del código de barras.
+     * Se reutiliza la misma validación y búsqueda que el ingreso manual.
+     */
+    fun onCodigoLeido(texto: String) {
+        _codigo.value = texto.trim().uppercase()
+        buscarCodigo()
+        if (_productoDetectado.value != null) {
+            _mensaje.value = "Código leído con la cámara: ${_codigo.value}"
+        }
+    }
+
+    /** El escaneo se canceló o falló: se avisa sin cerrar la app. */
+    fun onErrorEscaneo(mensaje: String) {
+        _mensaje.value = mensaje
+    }
+
     fun onCodigoChange(valor: String) {
         _codigo.value = valor.uppercase()
         _errorCodigo.value = null

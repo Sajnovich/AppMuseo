@@ -39,6 +39,12 @@
             </intent-filter>
         </activity>
 
+        <!-- Descarga el módulo del escáner de Google al instalar la app (si no, el primer escaneo
+             fallaría sin Internet) -->
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="barcode_ui" />
+
         <!-- FileProvider (Guía 13): entrega a la app de cámara un Uri seguro donde guardar la foto -->
         <provider
             android:name="androidx.core.content.FileProvider"

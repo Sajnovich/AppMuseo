@@ -202,6 +202,17 @@ class MapaEscanerCotizadorTest {
     // ── Navegación ──
 
     @Test
+    fun escaner_codigoLeidoConCamara_encuentraElProducto() {
+        val viewModel = EscanerViewModel()
+
+        viewModel.onCodigoLeido(" mdm-001 ")   // así lo entrega el lector: puede venir con espacios o minúsculas
+
+        assertEquals("MDM-001", viewModel.codigo.value)
+        assertNotNull(viewModel.productoDetectado.value)
+        assertNull(viewModel.errorCodigo.value)
+    }
+
+    @Test
     fun rutaDetalle_reemplazaElArgumento() {
         assertEquals("detalle/7", Screen.Detalle(7).construirRuta())
         assertEquals("home", Screen.Home.construirRuta())

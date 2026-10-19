@@ -7,7 +7,7 @@ En la Unidad 3 se reemplazan esos repositorios por una API REST (Retrofit) sin t
 - **Lenguaje:** Kotlin · **UI:** Jetpack Compose + Material 3 · **Arquitectura:** MVVM
 - **Persistencia local:** Room (solicitudes y usuarios registrados) + DataStore (sesión y preferencias)
 - **Recursos nativos:** cámara, galería, ubicación, notificaciones del sistema y vibración
-- **Pruebas:** 65 pruebas unitarias con JUnit 4
+- **Pruebas:** 66 pruebas unitarias con JUnit 4
 
 ---
 
@@ -69,7 +69,7 @@ app/src/test/…               → pruebas unitarias
 | Registros con estado pendiente / completado y fecha | Room: `SolicitudEntity`, `MisSolicitudesScreen` |
 | Cotizador de envío nacional e internacional | `CotizadorEnvio` (reglas), `CotizadorScreen` |
 | Mapa de museos virtuales de Iberoamérica | `MapaMuseosScreen` (mapa simulado, "museo más cercano a mí" con la ubicación del teléfono e Intent a la app de mapas) |
-| Simulación de cámara para lectura de códigos | `EscanerScreen` (foto real, lectura simulada) |
+| Lectura de códigos con cámara | `EscanerScreen`: lector real de QR y código de barras (Google Code Scanner), con lectura simulada como respaldo en el emulador |
 | Persistencia local de estados esenciales | DataStore (sesión) + Room (solicitudes) |
 | Notificaciones push simuladas | Notificación local del sistema (`Notificaciones`) + aviso animado en la app (`NotificacionSimulada`); se activan/desactivan en Perfil |
 | Registro de usuarios | `RegistroScreen` → `AuthRepository.registrar()` → Room (`UsuarioEntity`) |
@@ -106,6 +106,7 @@ si el usuario dice que no, la app sigue funcionando y le explica qué pasó.
 | Ubicación | "Museo más cercano a mí" en el mapa | Solo ubicación **aproximada** (`ACCESS_COARSE_LOCATION`); sin permiso o sin señal se usa Santiago como referencia y se avisa | `UbicacionUtils.kt`, `MapaMuseosScreen.kt` |
 | Notificaciones | Avisar cuando una solicitud se registra o se completa | `POST_NOTIFICATIONS` (Android 13+) pedido al confirmar una solicitud o al activarlas en Perfil; sin permiso, el aviso se ve dentro de la app | `Notificaciones.kt`, `SolicitudViewModel.kt` |
 | Vibración | Confirmar físicamente "agregar al carrito" | Retroalimentación háptica de Compose, no requiere permiso | `TarjetaProducto.kt`, `DetalleProductoScreen.kt` |
+| Lector QR / código de barras | Escanear el código de un producto (formatos QR y CODE-128) | Google Code Scanner: Google Play services abre su propia cámara, la app no pide permiso; si se cancela, se avisa | `EscanerScreen.kt` |
 | App de mapas | Abrir un museo en Google Maps u otra | `Intent` implícito con `try/catch` si no hay app instalada | `MapaMuseosScreen.kt` |
 
 ---
