@@ -1,9 +1,13 @@
 package com.example.appmuseo.ui.screen
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
@@ -28,9 +32,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.NearMe
 import androidx.compose.material.icons.filled.Museum
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Card
+import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -48,11 +56,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.example.appmuseo.model.Museo
+import com.example.appmuseo.model.MuseoCercano
 import com.example.appmuseo.navigation.Screen
 import com.example.appmuseo.ui.components.BarraInferior
 import com.example.appmuseo.ui.components.BarraSuperior
 import com.example.appmuseo.utils.ProyeccionMapa
+import com.example.appmuseo.utils.formatearDistancia
+import com.example.appmuseo.utils.obtenerUltimaUbicacion
 import com.example.appmuseo.viewmodel.MainViewModel
 import com.example.appmuseo.viewmodel.MapaViewModel
 
@@ -60,7 +72,8 @@ import com.example.appmuseo.viewmodel.MapaViewModel
  * MAPA DE MUSEOS VIRTUALES DE IBEROAMÉRICA.
  * Es un mapa SIMULADO: un rectángulo donde cada museo se ubica según su latitud/longitud
  * (ver ProyeccionMapa). En la Unidad 3 se puede reemplazar por Google Maps con el backend.
- * Además, el botón "Abrir en mapas" usa un Intent para abrir la app de mapas del teléfono.
+ * Además, el botón "Abrir en mapas" usa un Intent para abrir la app de mapas del teléfono,
+ * y "Museo más cercano a mí" usa la UBICACIÓN del teléfono (con permiso en tiempo de ejecución).
  */
 @Composable
 fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel) {
@@ -102,7 +115,16 @@ fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel)
                 }
             }
 
-            // 2) Mapa simulado
+            // 2) Museo más cercano según la ubicación del teléfono (recurso nativo)
+            item {
+                BuscadorMuseoCercano(
+                    cercano = estado.cercano,
+                    onUbicacion = { latitud, longitud -> mapaViewModel.buscarMuseoCercano(latitud, longitud) },
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+
+            // 3) Mapa simulado
             item {
                 MapaSimulado(
                     museos = estado.museosVisibles,
@@ -112,7 +134,7 @@ fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel)
                 )
             }
 
-            // 3) Detalle del museo seleccionado (aparece con animación)
+            // 4) Detalle del museo seleccionado (aparece con animación)
             item {
                 AnimatedVisibility(visible = estado.museoSeleccionado != null) {
                     estado.museoSeleccionado?.let { museo ->
@@ -134,7 +156,7 @@ fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel)
                 }
             }
 
-            // 4) Lista de museos
+            // 5) Lista de museos
             item {
                 Text(
                     "Museos (${estado.museosVisibles.size}) · datos sintéticos",
@@ -149,6 +171,84 @@ fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel)
                     seleccionado = estado.museoSeleccionado?.id == museo.id,
                     onClick = { mapaViewModel.seleccionarMuseo(museo) }
                 )
+            }
+        }
+    }
+}
+
+/**
+ * Botón "Museo más cercano a mí" + resultado.
+ * Flujo seguro de permisos (igual que la cámara en BotonesCamaraGaleria):
+ *  1. Si ya hay permiso → se lee la ubicación.
+ *  2. Si no → se pide; si el usuario lo niega, la función sigue funcionando con
+ *     una ubicación de referencia y se le avisa (la app nunca se cae por un "no").
+ */
+@Composable
+private fun BuscadorMuseoCercano(
+    cercano: MuseoCercano?,
+    onUbicacion: (Double?, Double?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+
+    fun usarUbicacion() {
+        val ubicacion = obtenerUltimaUbicacion(context)   // null si no hay permiso o señal
+        onUbicacion(ubicacion?.latitude, ubicacion?.longitude)
+    }
+
+    val lanzadorPermiso = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { concedido: Boolean ->
+        if (!concedido) {
+            Toast.makeText(context, "Sin permiso de ubicación usamos Santiago como referencia", Toast.LENGTH_SHORT).show()
+        }
+        usarUbicacion()
+    }
+
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Button(
+            onClick = {
+                val tienePermiso = ContextCompat.checkSelfPermission(
+                    context, Manifest.permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+
+                if (tienePermiso) usarUbicacion() else lanzadorPermiso.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Filled.MyLocation, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Museo más cercano a mí")
+        }
+
+        // El resultado aparece con animación la primera vez que se busca
+        AnimatedVisibility(visible = cercano != null) {
+            cercano?.let { resultado ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+                ) {
+                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            if (resultado.ubicacionAproximada) Icons.Filled.Info else Icons.Filled.NearMe,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                "${resultado.museo.nombre} · a ${formatearDistancia(resultado.distanciaKm)}",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                            if (resultado.ubicacionAproximada) {
+                                Text(
+                                    "No pudimos leer tu ubicación: la distancia se calculó desde Santiago.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

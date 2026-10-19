@@ -1,5 +1,8 @@
 package com.example.appmuseo.ui.screen
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,6 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -45,6 +49,7 @@ import com.example.appmuseo.model.TipoDestino
 import com.example.appmuseo.navigation.Screen
 import com.example.appmuseo.ui.components.BarraSuperior
 import com.example.appmuseo.utils.CotizadorEnvio
+import com.example.appmuseo.utils.Notificaciones
 import com.example.appmuseo.utils.formatearPrecio
 import com.example.appmuseo.viewmodel.CarritoViewModel
 import com.example.appmuseo.viewmodel.MainViewModel
@@ -67,6 +72,20 @@ fun SolicitudScreen(
     val items by carritoViewModel.items.collectAsState()
     val usuario by sesionViewModel.usuario.collectAsState()
     val guardando by solicitudViewModel.guardando.collectAsState()
+    val context = LocalContext.current
+
+    // Guarda en Room; si sale bien, vacía el carrito y lleva a "Mis solicitudes"
+    fun confirmar() {
+        solicitudViewModel.confirmarSolicitud(items) {
+            carritoViewModel.vaciar()
+            mainViewModel.navigateTo(Screen.MisSolicitudes, popUpToRoute = Screen.Home)
+        }
+    }
+
+    // El resultado del permiso no cambia el flujo: si lo niega, solo verá el aviso dentro de la app
+    val lanzadorPermisoNotificaciones = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { _ -> confirmar() }
 
     val subtotal = items.sumOf { it.subtotal }
     val pesoTotal = items.sumOf { it.producto.pesoKg * it.cantidad }
@@ -209,10 +228,15 @@ fun SolicitudScreen(
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = {
-                    solicitudViewModel.confirmarSolicitud(items) {
-                        // Se ejecuta solo si se guardó en Room
-                        carritoViewModel.vaciar()
-                        mainViewModel.navigateTo(Screen.MisSolicitudes, popUpToRoute = Screen.Home)
+                    // 1) Primero se valida: si hay errores, se marcan los campos y no se sigue
+                    if (solicitudViewModel.validarFormulario(requiereEnvio)) {
+                        // 2) Se pide el permiso de notificaciones en el momento en que tiene sentido
+                        //    (Android 13+). Con o sin permiso, la solicitud se guarda igual.
+                        if (Notificaciones.necesitaPermiso(context)) {
+                            lanzadorPermisoNotificaciones.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            confirmar()
+                        }
                     }
                 },
                 enabled = items.isNotEmpty() && !guardando,

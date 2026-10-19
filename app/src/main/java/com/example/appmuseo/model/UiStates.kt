@@ -62,7 +62,8 @@ data class CotizadorErrores(
 data class MapaUiState(
     val museos: List<Museo> = emptyList(),
     val paisSeleccionado: String? = null,    // null = todos los países
-    val museoSeleccionado: Museo? = null
+    val museoSeleccionado: Museo? = null,
+    val cercano: MuseoCercano? = null        // resultado de "Museo más cercano a mí"
 ) {
     val museosVisibles: List<Museo>
         get() = if (paisSeleccionado == null) museos else museos.filter { it.pais == paisSeleccionado }
@@ -71,3 +72,14 @@ data class MapaUiState(
     val paises: List<String>
         get() = museos.map { it.pais }.distinct().sorted()
 }
+
+/**
+ * Resultado de buscar el museo más cercano.
+ * @param ubicacionAproximada true si no se pudo leer la ubicación del teléfono
+ * (sin permiso o sin señal) y se usó la ubicación de referencia.
+ */
+data class MuseoCercano(
+    val museo: Museo,
+    val distanciaKm: Double,
+    val ubicacionAproximada: Boolean
+)

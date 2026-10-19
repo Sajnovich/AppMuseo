@@ -8,6 +8,14 @@
 
     <!-- Permiso "peligroso": además de declararlo aquí, se pide en tiempo de ejecución (BotonesCamaraGaleria.kt) -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Ubicación APROXIMADA (no la precisa): basta para saber qué museo queda más cerca
+         y cuida la privacidad. También es "peligroso": se pide en MapaMuseosScreen.kt -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-feature
+        android:name="android.hardware.location"
+        android:required="false" />
+    <!-- Android 13+: mostrar notificaciones se pide en tiempo de ejecución (SolicitudScreen y PerfilScreen) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Queda declarado para la Unidad 3 (consumo de API REST con Retrofit) -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Nota: la galería (GetContent) NO necesita permiso de almacenamiento en Android moderno -->

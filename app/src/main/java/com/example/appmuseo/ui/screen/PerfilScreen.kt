@@ -1,5 +1,9 @@
 package com.example.appmuseo.ui.screen
 
+import android.Manifest
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -38,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.appmuseo.navigation.Screen
 import com.example.appmuseo.ui.components.BarraInferior
@@ -47,14 +52,15 @@ import com.example.appmuseo.ui.components.DialogoCerrarSesion
 import com.example.appmuseo.ui.components.ImagenInteligente
 import com.example.appmuseo.ui.theme.AmbarPendiente
 import com.example.appmuseo.ui.theme.VerdeCompletado
+import com.example.appmuseo.utils.Notificaciones
 import com.example.appmuseo.viewmodel.CarritoViewModel
 import com.example.appmuseo.viewmodel.MainViewModel
 import com.example.appmuseo.viewmodel.PerfilViewModel
 import com.example.appmuseo.viewmodel.SesionViewModel
 
 /**
- * PERFIL: foto con cámara o galería (Guía 13), preferencia guardada en DataStore con
- * color animado y texto derivado (Guía 12), y cierre de sesión con confirmación.
+ * PERFIL: foto con cámara o galería (Guía 13), preferencia de notificaciones guardada en
+ * DataStore con color animado y texto derivado (Guía 12), y cierre de sesión con confirmación.
  */
 @Composable
 fun PerfilScreen(
@@ -67,6 +73,18 @@ fun PerfilScreen(
     val imagenUri by perfilViewModel.imagenUri.collectAsState()
     val notificaciones by perfilViewModel.notificacionesActivas.collectAsState()
     val mostrarMensaje by perfilViewModel.mostrarMensaje.collectAsState()
+
+    val context = LocalContext.current
+
+    // Si niega el permiso, la preferencia igual se activa, pero los avisos se verán solo dentro de la app
+    val lanzadorPermisoNotificaciones = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { concedido: Boolean ->
+        perfilViewModel.alternarNotificaciones()
+        if (!concedido) {
+            Toast.makeText(context, "Sin permiso, los avisos se verán solo dentro de la app", Toast.LENGTH_LONG).show()
+        }
+    }
 
     var mostrarDialogoSalir by remember { mutableStateOf(false) }
     if (mostrarDialogoSalir) {
@@ -110,7 +128,7 @@ fun PerfilScreen(
             }
 
             Spacer(modifier = Modifier.height(4.dp))
-            Text("Notificaciones simuladas", style = MaterialTheme.typography.titleMedium)
+            Text("Notificaciones", style = MaterialTheme.typography.titleMedium)
 
             // Mientras DataStore no responde (null) mostramos un indicador de carga
             val activas = notificaciones
@@ -129,7 +147,14 @@ fun PerfilScreen(
                 }
 
                 Button(
-                    onClick = { perfilViewModel.alternarNotificaciones() },
+                    onClick = {
+                        // Al ACTIVARLAS en Android 13+ se pide el permiso; al desactivarlas no hace falta
+                        if (!activas && Notificaciones.necesitaPermiso(context)) {
+                            lanzadorPermisoNotificaciones.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            perfilViewModel.alternarNotificaciones()
+                        }
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = colorAnimado, contentColor = Color.White),
                     modifier = Modifier
                         .fillMaxWidth()
