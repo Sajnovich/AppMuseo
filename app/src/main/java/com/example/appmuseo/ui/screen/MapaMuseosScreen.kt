@@ -71,13 +71,13 @@ import com.example.appmuseo.viewmodel.MainViewModel
 import com.example.appmuseo.viewmodel.MapaViewModel
 
 @Composable
-fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel) {
+fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel, noLeidas: Int = 0) {
     val estado by mapaViewModel.estado.collectAsState()
     val context = LocalContext.current
 
     Scaffold(
         topBar = { BarraSuperior(titulo = "Mapa de museos virtuales") },
-        bottomBar = { BarraInferior(Screen.Mapa.route, mainViewModel::navegarPestana) }
+        bottomBar = { BarraInferior(Screen.Mapa.route, mainViewModel::navegarPestana, noLeidas) }
     ) { innerPadding ->
         // toda la pantalla es una sola lazycolumn
         LazyColumn(

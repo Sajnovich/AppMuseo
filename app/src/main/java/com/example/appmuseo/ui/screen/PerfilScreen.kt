@@ -63,7 +63,8 @@ fun PerfilScreen(
     perfilViewModel: PerfilViewModel,
     sesionViewModel: SesionViewModel,
     carritoViewModel: CarritoViewModel,
-    mainViewModel: MainViewModel
+    mainViewModel: MainViewModel,
+    noLeidas: Int = 0
 ) {
     val usuario by sesionViewModel.usuario.collectAsState()
     val imagenUri by perfilViewModel.imagenUri.collectAsState()
@@ -97,7 +98,7 @@ fun PerfilScreen(
 
     Scaffold(
         topBar = { BarraSuperior(titulo = "Mi perfil") },
-        bottomBar = { BarraInferior(Screen.Perfil.route, mainViewModel::navegarPestana) }
+        bottomBar = { BarraInferior(Screen.Perfil.route, mainViewModel::navegarPestana, noLeidas) }
     ) { innerPadding ->
         Column(
             modifier = Modifier

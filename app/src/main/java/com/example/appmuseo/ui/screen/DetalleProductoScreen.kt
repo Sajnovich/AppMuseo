@@ -23,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -45,6 +46,9 @@ import com.example.appmuseo.model.Producto
 import com.example.appmuseo.model.ProductoFisico
 import com.example.appmuseo.navigation.Screen
 import com.example.appmuseo.ui.components.BarraSuperior
+import com.example.appmuseo.viewmodel.FavoritosViewModel
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import com.example.appmuseo.ui.components.IconoCategoria
 import com.example.appmuseo.utils.formatearPrecio
 import com.example.appmuseo.viewmodel.CarritoViewModel
@@ -57,9 +61,12 @@ fun DetalleProductoScreen(
     productoId: Int,
     catalogoViewModel: CatalogoViewModel,
     carritoViewModel: CarritoViewModel,
+    favoritosViewModel: FavoritosViewModel,
     mainViewModel: MainViewModel
 ) {
     val producto = catalogoViewModel.buscarPorId(productoId)
+    val favoritos by favoritosViewModel.productos.collectAsState()
+    val esFavorito = productoId in favoritos
     val itemsCarrito by carritoViewModel.items.collectAsState()
 
     // mensaje animado de confirmación (null = oculto)
@@ -77,7 +84,20 @@ fun DetalleProductoScreen(
                 titulo = producto?.categoria?.etiqueta ?: "Detalle",
                 onVolver = { mainViewModel.navigateBack() },
                 cantidadCarrito = itemsCarrito.sumOf { it.cantidad },
-                onCarrito = { mainViewModel.navigateTo(Screen.Carrito) }
+                onCarrito = { mainViewModel.navigateTo(Screen.Carrito) },
+                acciones = {
+                    if (producto != null) {
+                        IconButton(onClick = {
+                            val guardado = favoritosViewModel.alternarProducto(productoId)
+                            mensaje = if (guardado) "Guardado en favoritos" else "Quitado de favoritos"
+                        }) {
+                            Icon(
+                                if (esFavorito) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                                contentDescription = if (esFavorito) "Quitar de favoritos" else "Guardar en favoritos"
+                            )
+                        }
+                    }
+                }
             )
         }
     ) { innerPadding ->
