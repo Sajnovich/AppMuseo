@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()   // la app dibuja detrás de la barra de estado (como en la Guía 11)
         Notificaciones.crearCanal(this)
         // osmdroid exige identificar la app ante los servidores de OpenStreetMap (antes de crear el mapa)
-        Configuration.getInstance().userAgentValue = packageName   // canal de notificaciones (obligatorio desde Android 8)
+        Configuration.getInstance().userAgentValue = "AppMuseoDuoc/1.0 (proyecto estudiantil)"
         setContent {
             MuseoTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
