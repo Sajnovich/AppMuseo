@@ -50,7 +50,8 @@ import kotlinx.coroutines.launch
 fun CatalogoScreen(
     catalogoViewModel: CatalogoViewModel,
     carritoViewModel: CarritoViewModel,
-    mainViewModel: MainViewModel
+    mainViewModel: MainViewModel,
+    noLeidas: Int = 0
 ) {
     val estado by catalogoViewModel.estado.collectAsState()
     val itemsCarrito by carritoViewModel.items.collectAsState()
@@ -69,7 +70,7 @@ fun CatalogoScreen(
                 onCarrito = { mainViewModel.navigateTo(Screen.Carrito) }
             )
         },
-        bottomBar = { BarraInferior(Screen.Catalogo.route, mainViewModel::navegarPestana) },
+        bottomBar = { BarraInferior(Screen.Catalogo.route, mainViewModel::navegarPestana, noLeidas) },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         Column(

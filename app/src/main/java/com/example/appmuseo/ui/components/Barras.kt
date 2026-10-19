@@ -6,7 +6,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.Badge
@@ -20,6 +20,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
@@ -32,7 +33,8 @@ fun BarraSuperior(
     onVolver: (() -> Unit)? = null,
     onMenu: (() -> Unit)? = null,
     cantidadCarrito: Int = 0,
-    onCarrito: (() -> Unit)? = null
+    onCarrito: (() -> Unit)? = null,
+    acciones: @Composable RowScope.() -> Unit = {}
 ) {
     TopAppBar(
         title = { Text(text = titulo, maxLines = 1, overflow = TextOverflow.Ellipsis) },
@@ -48,6 +50,7 @@ fun BarraSuperior(
             }
         },
         actions = {
+            acciones()
             if (onCarrito != null) {
                 IconButton(onClick = onCarrito) {
                     BadgedBox(badge = { if (cantidadCarrito > 0) Badge { Text("$cantidadCarrito") } }) {
@@ -70,21 +73,29 @@ private data class Pestana(val screen: Screen, val etiqueta: String, val icono: 
 
 private val pestanas = listOf(
     Pestana(Screen.Home, "Inicio", Icons.Filled.Home),
-    Pestana(Screen.Catalogo, "Catálogo", Icons.Filled.Storefront),
     Pestana(Screen.Mapa, "Mapa", Icons.Filled.Map),
-    Pestana(Screen.MisSolicitudes, "Solicitudes", Icons.Filled.Receipt),
+    Pestana(Screen.Catalogo, "Catálogo", Icons.Filled.Storefront),
+    Pestana(Screen.Notificaciones, "Avisos", Icons.Filled.Notifications),
     Pestana(Screen.Perfil, "Perfil", Icons.Filled.Person)
 )
 
+// noLeidas: numerito rojo sobre la campana
 @Composable
-fun BarraInferior(rutaActual: String, onNavegar: (Screen) -> Unit) {
+fun BarraInferior(rutaActual: String, onNavegar: (Screen) -> Unit, noLeidas: Int = 0) {
     NavigationBar {
         pestanas.forEach { pestana ->
             NavigationBarItem(
                 selected = rutaActual == pestana.screen.route,
                 onClick = { if (rutaActual != pestana.screen.route) onNavegar(pestana.screen) },
-                // contentDescription = null porque la etiqueta de texto
-                icon = { Icon(pestana.icono, contentDescription = null) },
+                icon = {
+                    if (pestana.screen == Screen.Notificaciones && noLeidas > 0) {
+                        BadgedBox(badge = { Badge { Text("$noLeidas") } }) {
+                            Icon(pestana.icono, contentDescription = "$noLeidas avisos sin leer")
+                        }
+                    } else {
+                        Icon(pestana.icono, contentDescription = null)
+                    }
+                },
                 label = { Text(pestana.etiqueta, maxLines = 1) }
             )
         }

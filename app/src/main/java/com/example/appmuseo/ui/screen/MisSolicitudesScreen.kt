@@ -46,7 +46,6 @@ import androidx.compose.ui.unit.dp
 import com.example.appmuseo.data.local.EstadoSolicitud
 import com.example.appmuseo.data.local.SolicitudEntity
 import com.example.appmuseo.navigation.Screen
-import com.example.appmuseo.ui.components.BarraInferior
 import com.example.appmuseo.ui.components.BarraSuperior
 import com.example.appmuseo.ui.components.DialogoConfirmacion
 import com.example.appmuseo.ui.components.NotificacionSimulada
@@ -84,8 +83,7 @@ fun MisSolicitudesScreen(solicitudViewModel: SolicitudViewModel, mainViewModel: 
     }
 
     Scaffold(
-        topBar = { BarraSuperior(titulo = "Mis solicitudes") },
-        bottomBar = { BarraInferior(Screen.MisSolicitudes.route, mainViewModel::navegarPestana) }
+        topBar = { BarraSuperior(titulo = "Mis solicitudes", onVolver = { mainViewModel.navigateBack() }) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
