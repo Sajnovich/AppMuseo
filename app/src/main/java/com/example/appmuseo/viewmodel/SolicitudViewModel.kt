@@ -14,6 +14,7 @@ import com.example.appmuseo.model.TipoDestino
 import com.example.appmuseo.model.Zona
 import com.example.appmuseo.repository.SolicitudRepository
 import com.example.appmuseo.utils.CotizadorEnvio
+import com.example.appmuseo.utils.Notificaciones
 import com.example.appmuseo.utils.Validaciones
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +28,7 @@ import kotlinx.coroutines.launch
  *  - Formulario con validaciones (Guía 11)
  *  - Cotización del envío según la zona
  *  - Persistencia en ROOM (lista de solicitudes con estado pendiente / completada)
- *  - Notificación "push" simulada (mensaje animado dentro de la app)
+ *  - Notificaciones: una real del sistema (barra de estado) + un aviso animado dentro de la app
  */
 class SolicitudViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -162,7 +163,7 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
             _formulario.value = SolicitudUiState()   // limpia el formulario
             _guardando.value = false
             onExito()
-            notificar("Solicitud #$idNuevo registrada. Estado: pendiente.")
+            notificar(idNuevo.toInt(), "Solicitud registrada", "Solicitud #$idNuevo registrada. Estado: pendiente.")
         }
     }
 
@@ -170,7 +171,7 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
     fun marcarCompletada(solicitud: SolicitudEntity) {
         viewModelScope.launch {
             repositorio.actualizarEstado(solicitud.id, EstadoSolicitud.COMPLETADA)
-            notificar("Solicitud #${solicitud.id} completada. ¡Gracias por tu compra!")
+            notificar(solicitud.id, "Solicitud completada", "Solicitud #${solicitud.id} completada. ¡Gracias por tu compra!")
         }
     }
 
@@ -178,9 +179,14 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch { repositorio.eliminar(solicitud) }
     }
 
-    /** "Push" simulado: solo se muestra si el usuario tiene activadas las notificaciones. */
-    private suspend fun notificar(texto: String) {
+    /**
+     * Avisa al usuario, solo si tiene activadas las notificaciones en su perfil (DataStore):
+     *  1) Notificación REAL del sistema (si dio el permiso), visible aunque salga de la app.
+     *  2) Aviso animado dentro de la app ("push" simulado), que se ve siempre.
+     */
+    private suspend fun notificar(id: Int, titulo: String, texto: String) {
         if (!sesionDataStore.obtenerNotificaciones().first()) return
+        Notificaciones.mostrar(getApplication<Application>(), id, titulo, texto)
         _textoNotificacion.value = texto
         _mostrarNotificacion.value = true
         delay(3_500)
