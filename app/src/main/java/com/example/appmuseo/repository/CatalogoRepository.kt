@@ -5,18 +5,10 @@ import com.example.appmuseo.model.Curso
 import com.example.appmuseo.model.Producto
 import com.example.appmuseo.model.ProductoFisico
 
-/**
- * "Backend simulado" del catálogo: los datos están escritos en el mismo código.
- * Representa la "base de datos sintética de cursos y productos" que entrega el caso.
- *
- * En la Unidad 3 se reemplaza el contenido de estas funciones por llamadas
- * a la API del sitio web institucional (Retrofit); los ViewModels no cambian.
- */
 class CatalogoRepository {
 
-    // listOf<Producto>: la lista guarda objetos de las DOS subclases (herencia)
+    // LISTOF<PRODUCTO>: LA LISTA GUARDA OBJETOS DE LAS DOS
     private val catalogo: List<Producto> = listOf(
-        // ── Merch ──
         ProductoFisico(1, "Taza Museo de los Museos", "Taza de cerámica de 350 ml con el isotipo del museo.",
             8_990, Categoria.MERCH, stock = 25, pesoKg = 0.4, codigoBarra = "MDM-001", destacado = true),
         ProductoFisico(2, "Polera algodón orgánico", "Polera unisex con ilustración de columnas clásicas.",
@@ -24,7 +16,6 @@ class CatalogoRepository {
         ProductoFisico(3, "Tote bag ilustrada", "Bolso de tela reutilizable con mapa de museos de Iberoamérica.",
             7_990, Categoria.MERCH, stock = 30, pesoKg = 0.2, codigoBarra = "MDM-003"),
 
-        // ── Materiales de conservación ──
         ProductoFisico(4, "Guantes de nitrilo (caja 100)", "Para manipulación segura de piezas y documentos.",
             12_990, Categoria.CONSERVACION, stock = 20, pesoKg = 0.6, codigoBarra = "MDM-004"),
         ProductoFisico(5, "Papel libre de ácido (50 hojas)", "Papel de pH neutro para guarda de obra sobre papel.",
@@ -32,7 +23,6 @@ class CatalogoRepository {
         ProductoFisico(6, "Caja de conservación archivística", "Caja de cartón libre de ácido para fotografías y documentos.",
             24_990, Categoria.CONSERVACION, stock = 8, pesoKg = 1.8, codigoBarra = "MDM-006"),
 
-        // ── Publicaciones ──
         ProductoFisico(7, "Manual de Museología Contemporánea", "Libro de referencia sobre gestión y políticas de museos.",
             22_990, Categoria.PUBLICACION, stock = 10, pesoKg = 0.9, codigoBarra = "MDM-007", destacado = true),
         ProductoFisico(8, "Guía de Mediación Cultural", "Estrategias prácticas para trabajar con distintas audiencias.",
@@ -40,7 +30,6 @@ class CatalogoRepository {
         ProductoFisico(9, "Revista Audiencias & Museos N°12", "Investigación aplicada sobre públicos en Iberoamérica.",
             6_990, Categoria.PUBLICACION, stock = 40, pesoKg = 0.3, codigoBarra = "MDM-009"),
 
-        // ── Cursos (subclase Curso: tienen cupos, modalidad y duración; no tienen peso) ──
         Curso(10, "Curso: Introducción a la Museología", "Fundamentos de la museología contemporánea. Certificado digital.",
             89_990, cupos = 25, modalidad = "Online", semanas = 6, destacado = true),
         Curso(11, "Curso: Conservación Preventiva", "Cuidado de colecciones. Incluye kit de práctica.",
@@ -53,10 +42,8 @@ class CatalogoRepository {
 
     fun buscarPorId(id: Int): Producto? = catalogo.find { it.id == id }
 
-    /** Solo los productos que se despachan (filterIsInstance filtra por subclase). */
     fun obtenerProductosFisicos(): List<ProductoFisico> = catalogo.filterIsInstance<ProductoFisico>()
 
-    /** Búsqueda usada por el escáner (solo los productos físicos tienen código). ignoreCase permite "mdm-001". */
     fun buscarPorCodigo(codigo: String): ProductoFisico? =
         obtenerProductosFisicos().find { it.codigoBarra.equals(codigo.trim(), ignoreCase = true) }
 }

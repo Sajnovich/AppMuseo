@@ -70,12 +70,6 @@ import com.example.appmuseo.utils.obtenerUltimaUbicacion
 import com.example.appmuseo.viewmodel.MainViewModel
 import com.example.appmuseo.viewmodel.MapaViewModel
 
-/**
- * MAPA DE MUSEOS VIRTUALES DE IBEROAMÉRICA.
- * Mapa REAL de OpenStreetMap con osmdroid (gratis y sin API key), un marcador por museo.
- * Además, el botón "Abrir en mapas" usa un Intent para abrir la app de mapas del teléfono,
- * y "Museo más cercano a mí" usa la UBICACIÓN del teléfono (con permiso en tiempo de ejecución).
- */
 @Composable
 fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel) {
     val estado by mapaViewModel.estado.collectAsState()
@@ -85,7 +79,7 @@ fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel)
         topBar = { BarraSuperior(titulo = "Mapa de museos virtuales") },
         bottomBar = { BarraInferior(Screen.Mapa.route, mainViewModel::navegarPestana) }
     ) { innerPadding ->
-        // Toda la pantalla es una sola LazyColumn: filtros, mapa, detalle y lista
+        // toda la pantalla es una sola lazycolumn
         LazyColumn(
             modifier = Modifier
                 .padding(innerPadding)
@@ -93,7 +87,6 @@ fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel)
             contentPadding = PaddingValues(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 1) Filtro por país
             item {
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -116,7 +109,6 @@ fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel)
                 }
             }
 
-            // 2) Museo más cercano según la ubicación del teléfono (recurso nativo)
             item {
                 BuscadorMuseoCercano(
                     cercano = estado.cercano,
@@ -125,7 +117,6 @@ fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel)
                 )
             }
 
-            // 3) Mapa REAL de OpenStreetMap (osmdroid, como el ejemplo 103 del curso)
             item {
                 Card(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()) {
                     MapaMuseosOsm(
@@ -140,19 +131,16 @@ fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel)
                 }
             }
 
-            // 4) Detalle del museo seleccionado (aparece con animación)
             item {
                 AnimatedVisibility(visible = estado.museoSeleccionado != null) {
                     estado.museoSeleccionado?.let { museo ->
                         DetalleMuseo(
                             museo = museo,
                             onAbrirMapa = {
-                                // Intent implícito: Android busca una app que sepa abrir "geo:"
                                 val uri = Uri.parse("geo:${museo.latitud},${museo.longitud}?q=${museo.latitud},${museo.longitud}(${Uri.encode(museo.nombre)})")
                                 try {
                                     context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                                 } catch (e: ActivityNotFoundException) {
-                                    // Control de errores: si no hay app de mapas, avisamos en vez de cerrarse
                                     Toast.makeText(context, "No hay una app de mapas instalada", Toast.LENGTH_SHORT).show()
                                 }
                             },
@@ -162,7 +150,6 @@ fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel)
                 }
             }
 
-            // 5) Lista de museos
             item {
                 Text(
                     "Museos (${estado.museosVisibles.size}) · datos sintéticos",
@@ -173,7 +160,7 @@ fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel)
             items(estado.museosVisibles, key = { it.id }) { museo ->
                 FilaMuseo(
                     museo = museo,
-                    modifier = Modifier.animateItem(),   // la lista se reacomoda al filtrar por país
+                    modifier = Modifier.animateItem(),
                     seleccionado = estado.museoSeleccionado?.id == museo.id,
                     onClick = { mapaViewModel.seleccionarMuseo(museo) }
                 )
@@ -182,13 +169,6 @@ fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel)
     }
 }
 
-/**
- * Botón "Museo más cercano a mí" + resultado.
- * Flujo seguro de permisos (igual que la cámara en BotonesCamaraGaleria):
- *  1. Si ya hay permiso → se lee la ubicación.
- *  2. Si no → se pide; si el usuario lo niega, la función sigue funcionando con
- *     una ubicación de referencia y se le avisa (la app nunca se cae por un "no").
- */
 @Composable
 private fun BuscadorMuseoCercano(
     cercano: MuseoCercano?,
@@ -198,7 +178,7 @@ private fun BuscadorMuseoCercano(
     val context = LocalContext.current
 
     fun usarUbicacion() {
-        val ubicacion = obtenerUltimaUbicacion(context)   // null si no hay permiso o señal
+        val ubicacion = obtenerUltimaUbicacion(context)
         onUbicacion(ubicacion?.latitude, ubicacion?.longitude)
     }
 
@@ -225,7 +205,6 @@ private fun BuscadorMuseoCercano(
             Text("Museo más cercano a mí")
         }
 
-        // El resultado aparece con animación la primera vez que se busca
         AnimatedVisibility(visible = cercano != null) {
             cercano?.let { resultado ->
                 Card(
@@ -260,7 +239,6 @@ private fun BuscadorMuseoCercano(
     }
 }
 
-/** Rectángulo "mapa" con un marcador por museo. */
 @Composable
 private fun MapaSimulado(
     museos: List<Museo>,
@@ -269,7 +247,6 @@ private fun MapaSimulado(
     modifier: Modifier = Modifier
 ) {
     Card(modifier = modifier.fillMaxWidth()) {
-        // BoxWithConstraints nos da el ancho y alto disponibles (maxWidth / maxHeight) en dp
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
@@ -279,14 +256,12 @@ private fun MapaSimulado(
         ) {
             val ancho = maxWidth
             val alto = maxHeight
-            // Márgenes internos: sin ellos, los marcadores de los bordes (Madrid, Lisboa) quedaban cortados
             val margenX = 24.dp
-            val margenSuperior = 44.dp   // alto del marcador seleccionado + un poco de aire
-            val margenInferior = 28.dp   // espacio para la leyenda de abajo
+            val margenSuperior = 44.dp
+            val margenInferior = 28.dp
             val anchoUtil = ancho - margenX * 2
             val altoUtil = alto - margenSuperior - margenInferior
 
-            // Etiquetas decorativas de los océanos
             Text(
                 "Océano Pacífico",
                 style = MaterialTheme.typography.labelSmall,
@@ -301,11 +276,10 @@ private fun MapaSimulado(
             )
 
             museos.forEach { museo ->
-                // key: le dice a Compose qué marcador es cuál, aunque la lista cambie al filtrar
+                // key
                 key(museo.id) {
                     val (x, y) = ProyeccionMapa.aPosicionRelativa(museo.latitud, museo.longitud)
                     val estaSeleccionado = museo.id == seleccionado?.id
-                    // El marcador seleccionado crece con animación
                     val tamanoMarcador by animateDpAsState(
                         targetValue = if (estaSeleccionado) 40.dp else 28.dp,
                         label = "tamanoMarcador"
@@ -315,7 +289,6 @@ private fun MapaSimulado(
                         contentDescription = "${museo.nombre}, ${museo.ciudad}",
                         tint = if (estaSeleccionado) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary,
                         modifier = Modifier
-                            // La punta del ícono debe quedar sobre la coordenada: restamos medio ancho y el alto
                             .offset(
                                 x = margenX + anchoUtil * x - tamanoMarcador / 2,
                                 y = margenSuperior + altoUtil * y - tamanoMarcador

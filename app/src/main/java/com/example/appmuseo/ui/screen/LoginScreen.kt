@@ -58,10 +58,6 @@ import com.example.appmuseo.viewmodel.LoginViewModel
 import com.example.appmuseo.viewmodel.MainViewModel
 import com.example.appmuseo.viewmodel.SesionViewModel
 
-/**
- * LOGIN con validaciones (Guía 11) y estados del resultado (Guía 5).
- * Las credenciales de prueba están en AuthRepository (variable, sin backend).
- */
 @Composable
 fun LoginScreen(
     loginViewModel: LoginViewModel,
@@ -69,11 +65,10 @@ fun LoginScreen(
     mainViewModel: MainViewModel
 ) {
     val estado by loginViewModel.estado.collectAsState()
-    // rememberSaveable: recuerda el valor aunque se gire la pantalla (Guía 12)
+    // REMEMBERSAVEABLE
     var mostrarClave by rememberSaveable { mutableStateOf(false) }
     val autenticando = estado.resultado is ResultadoLogin.Autenticando
 
-    // Cuando el login es exitoso: guardamos la sesión y vamos al Inicio (sin poder volver con "atrás")
     LaunchedEffect(estado.resultado) {
         val resultado = estado.resultado
         if (resultado is ResultadoLogin.Exito) {
@@ -88,8 +83,8 @@ fun LoginScreen(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .imePadding()                             // deja espacio al teclado (la app es edge-to-edge)
-                .verticalScroll(rememberScrollState())   // permite desplazar si aparece el teclado
+                .imePadding()   // deja espacio al teclado (la app es edge-to-edge)
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -109,7 +104,6 @@ fun LoginScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Campos con el componente estándar CampoTexto: ícono, error por campo y ✓ cuando es válido
             CampoTexto(
                 valor = estado.correo,
                 onValorChange = loginViewModel::onCorreoChange,
@@ -129,7 +123,6 @@ fun LoginScreen(
                 error = estado.errores.clave,
                 visualTransformation = if (mostrarClave) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                // Al presionar "Listo" en el teclado se intenta ingresar, igual que con el botón
                 keyboardActions = KeyboardActions(onDone = { loginViewModel.iniciarSesion() }),
                 accionFinal = {
                     IconButton(onClick = { mostrarClave = !mostrarClave }) {
@@ -142,7 +135,6 @@ fun LoginScreen(
                 enabled = !autenticando
             )
 
-            // Error que "devuelve el servidor" (credenciales incorrectas), con animación
             val resultado = estado.resultado
             AnimatedVisibility(visible = resultado is ResultadoLogin.Error) {
                 Text(
@@ -152,7 +144,6 @@ fun LoginScreen(
                 )
             }
 
-            // Aviso positivo (ej: después de crear una cuenta)
             AnimatedVisibility(visible = estado.aviso != null) {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
@@ -188,7 +179,6 @@ fun LoginScreen(
                 Text("¿No tienes cuenta? Crear una")
             }
 
-            // Ayuda para probar la app (MVP sin backend)
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
                 modifier = Modifier.fillMaxWidth()

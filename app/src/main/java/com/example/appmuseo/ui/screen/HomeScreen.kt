@@ -58,13 +58,8 @@ import com.example.appmuseo.viewmodel.MainViewModel
 import com.example.appmuseo.viewmodel.SesionViewModel
 import kotlinx.coroutines.launch
 
-// Acceso rápido del inicio (texto + ícono + a qué acción lleva)
 private data class AccesoRapido(val titulo: String, val icono: ImageVector, val accion: () -> Unit)
 
-/**
- * INICIO: menú lateral (ModalNavigationDrawer) + TopAppBar + NavigationBar (Guía 10).
- * Los accesos rápidos se acomodan en 2, 3 o 4 columnas según el ancho (Guía 9).
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -104,7 +99,7 @@ fun HomeScreen(
             mainViewModel.navegarPestana(Screen.Catalogo)
         },
         AccesoRapido("Cursos", Icons.Filled.School) {
-            catalogoViewModel.seleccionarCategoria(Categoria.CURSO)   // abre el catálogo ya filtrado
+            catalogoViewModel.seleccionarCategoria(Categoria.CURSO)
             mainViewModel.navegarPestana(Screen.Catalogo)
         },
         AccesoRapido("Mapa de museos", Icons.Filled.Map) { mainViewModel.navegarPestana(Screen.Mapa) },
@@ -121,15 +116,14 @@ fun HomeScreen(
                 onNavegar = { screen ->
                     scope.launch { drawerState.close() }
                     when (screen) {
-                        Screen.Home -> Unit   // ya estamos en el Inicio
-                        // Las pantallas de la barra inferior se abren como pestañas (sin duplicarlas en la pila)
+                        Screen.Home -> Unit   // YA ESTAMOS EN EL INICIO
                         Screen.Catalogo, Screen.Mapa, Screen.MisSolicitudes, Screen.Perfil -> mainViewModel.navegarPestana(screen)
                         else -> mainViewModel.navigateTo(screen)
                     }
                 },
                 onCerrarSesion = {
                     scope.launch { drawerState.close() }
-                    mostrarDialogoSalir = true   // primero se pide confirmación
+                    mostrarDialogoSalir = true
                 }
             )
         }
@@ -154,7 +148,6 @@ fun HomeScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Saludo
                 Text("Hola, ${usuario.nombre.ifBlank { "visitante" }}", style = MaterialTheme.typography.headlineSmall)
                 Text(
                     "Perfil: ${usuario.tipoUsuario.ifBlank { "Público general" }}",
@@ -162,7 +155,6 @@ fun HomeScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                // Banner principal
                 Card(
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -180,19 +172,17 @@ fun HomeScreen(
                     }
                 }
 
-                // Accesos rápidos en grilla: chunked divide la lista en filas de "columnas" elementos
+                // Accesos rápidos en grilla
                 Text("Accesos rápidos", style = MaterialTheme.typography.titleMedium)
                 accesos.chunked(columnas).forEach { fila ->
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         fila.forEach { acceso ->
                             TarjetaAcceso(acceso, Modifier.weight(1f))
                         }
-                        // Si la última fila queda incompleta, rellenamos con espacios
                         repeat(columnas - fila.size) { Spacer(modifier = Modifier.weight(1f)) }
                     }
                 }
 
-                // Productos destacados (reutiliza TarjetaProducto)
                 Text("Destacados", style = MaterialTheme.typography.titleMedium)
                 catalogoViewModel.destacados().forEach { producto ->
                     TarjetaProducto(
@@ -218,7 +208,7 @@ fun HomeScreen(
 private fun TarjetaAcceso(acceso: AccesoRapido, modifier: Modifier = Modifier) {
     Card(
         onClick = acceso.accion,
-        modifier = modifier.heightIn(min = 104.dp),   // heightIn: crece si el usuario usa letra grande
+        modifier = modifier.heightIn(min = 104.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(

@@ -49,11 +49,6 @@ private val EsquemaOscuro = darkColorScheme(
     onSurfaceVariant = TextoClaroSecundario
 )
 
-/**
- * Tema de la app. Elige el esquema claro u oscuro según la configuración del teléfono.
- * Todas las pantallas usan MaterialTheme.colorScheme.xxx en vez de colores fijos,
- * así funcionan bien en ambos modos (y mantienen buen contraste).
- */
 @Composable
 fun MuseoTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

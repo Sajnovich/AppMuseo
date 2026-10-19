@@ -56,11 +56,6 @@ import com.example.appmuseo.viewmodel.MainViewModel
 import com.example.appmuseo.viewmodel.SesionViewModel
 import com.example.appmuseo.viewmodel.SolicitudViewModel
 
-/**
- * FORMULARIO DE SOLICITUD de compra / inscripción (Guía 11):
- * CampoTexto (OutlinedTextField con isError/supportingText), RadioButton para la zona y Checkbox de términos.
- * Al confirmar, la solicitud se guarda en Room con estado PENDIENTE.
- */
 @Composable
 fun SolicitudScreen(
     solicitudViewModel: SolicitudViewModel,
@@ -74,7 +69,7 @@ fun SolicitudScreen(
     val guardando by solicitudViewModel.guardando.collectAsState()
     val context = LocalContext.current
 
-    // Guarda en Room; si sale bien, vacía el carrito y lleva a "Mis solicitudes"
+    // Guarda en Room
     fun confirmar() {
         solicitudViewModel.confirmarSolicitud(items) {
             carritoViewModel.vaciar()
@@ -82,7 +77,6 @@ fun SolicitudScreen(
         }
     }
 
-    // El resultado del permiso no cambia el flujo: si lo niega, solo verá el aviso dentro de la app
     val lanzadorPermisoNotificaciones = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { _ -> confirmar() }
@@ -92,11 +86,9 @@ fun SolicitudScreen(
     val requiereEnvio = items.any { it.producto.requiereEnvio }
     val costoEnvio = if (requiereEnvio) formulario.cotizacion?.costoEnvio ?: 0 else 0
 
-    // Al entrar, completamos nombre y correo con los datos de la sesión
     LaunchedEffect(Unit) {
         solicitudViewModel.precargarDatos(usuario.nombre, usuario.correo)
     }
-    // Si cambian el peso o el subtotal del carrito, se recalcula el envío de la zona elegida
     LaunchedEffect(pesoTotal, subtotal) {
         solicitudViewModel.actualizarCotizacion(pesoTotal, subtotal)
     }
@@ -108,7 +100,7 @@ fun SolicitudScreen(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .imePadding()   // el teclado no tapa la dirección ni el botón
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -134,7 +126,7 @@ fun SolicitudScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next)
             )
 
-            // Los datos de despacho solo aparecen si hay productos físicos
+            // los datos de despacho solo aparecen si hay productos
             if (requiereEnvio) {
                 HorizontalDivider()
                 Text("Despacho", style = MaterialTheme.typography.titleMedium)
@@ -149,7 +141,6 @@ fun SolicitudScreen(
                     }
                 }
 
-                // Lista de zonas con RadioButton. "selectable" hace clickeable toda la fila (más fácil de tocar)
                 CotizadorEnvio.zonasPorTipo(formulario.tipoDestino).forEach { zona ->
                     Row(
                         modifier = Modifier
@@ -182,7 +173,6 @@ fun SolicitudScreen(
                 )
             }
 
-            // Términos y condiciones: toda la fila es clickeable (accesibilidad)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -201,7 +191,6 @@ fun SolicitudScreen(
                 Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
             }
 
-            // Resumen de la solicitud
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text("Resumen", style = MaterialTheme.typography.titleMedium)
@@ -228,10 +217,7 @@ fun SolicitudScreen(
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = {
-                    // 1) Primero se valida: si hay errores, se marcan los campos y no se sigue
                     if (solicitudViewModel.validarFormulario(requiereEnvio)) {
-                        // 2) Se pide el permiso de notificaciones en el momento en que tiene sentido
-                        //    (Android 13+). Con o sin permiso, la solicitud se guarda igual.
                         if (Notificaciones.necesitaPermiso(context)) {
                             lanzadorPermisoNotificaciones.launch(Manifest.permission.POST_NOTIFICATIONS)
                         } else {

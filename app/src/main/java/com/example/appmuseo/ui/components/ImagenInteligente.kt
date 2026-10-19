@@ -23,12 +23,6 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.appmuseo.ui.theme.MuseoTheme
 
-/**
- * IMAGEN INTELIGENTE (Guía 13): muestra una imagen circular a partir de un Uri.
- * - Si hay Uri → la carga con Coil (AsyncImage), que lee la imagen sin bloquear la pantalla.
- * - Si no hay Uri → muestra un ícono por defecto.
- * Se reutiliza en el Perfil (foto de usuario) y en el Escáner (foto del producto).
- */
 @Composable
 fun ImagenInteligente(
     uri: Uri?,

@@ -42,30 +42,20 @@ import com.example.appmuseo.data.local.AppDatabase
 import com.example.appmuseo.repository.AuthRepository
 import kotlinx.coroutines.flow.collectLatest
 
-/** Duración de las transiciones entre pantallas, en milisegundos. */
 private const val DURACION_TRANSICION = 300
 
-/**
- * NAVEGACIÓN DE LA APP (Guías 10 y 11).
- *  1. Crea el NavController.
- *  2. Crea los ViewModels UNA sola vez y los comparte entre pantallas.
- *  3. Escucha los eventos del MainViewModel y mueve el NavController.
- *  4. Declara en el NavHost qué pantalla corresponde a cada ruta.
- */
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     val context = LocalContext.current
 
-    // Repositorio de autenticación con acceso a Room (cuentas registradas). remember = se crea una vez
+    // Repositorio de autenticación con acceso a Room
     val authRepository = remember {
         AuthRepository(usuarioDao = AppDatabase.obtenerBaseDeDatos(context).usuarioDao())
     }
 
-    // ViewModels compartidos (viven mientras viva la Activity)
     val mainViewModel: MainViewModel = viewModel()
     val sesionViewModel: SesionViewModel = viewModel()
-    // viewModel { ... } permite entregarle parámetros al ViewModel al crearlo
     val loginViewModel: LoginViewModel = viewModel { LoginViewModel(authRepository) }
     val registroViewModel: RegistroViewModel = viewModel { RegistroViewModel(authRepository) }
     val catalogoViewModel: CatalogoViewModel = viewModel()
@@ -76,7 +66,6 @@ fun AppNavigation() {
     val escanerViewModel: EscanerViewModel = viewModel()
     val perfilViewModel: PerfilViewModel = viewModel()
 
-    // Escucha los eventos de navegación emitidos por el MainViewModel
     LaunchedEffect(key1 = Unit) {
         mainViewModel.navigationEvents.collectLatest { event ->
             when (event) {
@@ -97,8 +86,7 @@ fun AppNavigation() {
     NavHost(
         navController = navController,
         startDestination = Screen.Carga.route,
-        // TRANSICIONES entre pantallas (Guía 12): la nueva entra desde la derecha mientras la
-        // anterior sale hacia la izquierda; al volver ("pop") la dirección se invierte.
+        // transiciones entre pantallas (guía 12): la nueva entra
         enterTransition = {
             slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(DURACION_TRANSICION)) +
                     fadeIn(tween(DURACION_TRANSICION))
@@ -131,7 +119,6 @@ fun AppNavigation() {
         composable(route = Screen.Catalogo.route) {
             CatalogoScreen(catalogoViewModel, carritoViewModel, mainViewModel)
         }
-        // Ruta con argumento: "detalle/{productoId}" (el id llega como Int)
         composable(
             route = Screen.RUTA_DETALLE,
             arguments = listOf(navArgument(Screen.ARG_PRODUCTO_ID) { type = NavType.IntType })

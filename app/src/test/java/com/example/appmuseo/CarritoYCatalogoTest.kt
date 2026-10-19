@@ -13,14 +13,11 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Pruebas del catálogo (filtros) y del carrito (cantidades, stock y totales). */
 class CarritoYCatalogoTest {
 
     private val repositorio = CatalogoRepository()
-    private val taza = repositorio.buscarPorId(1)!!      // Merch, $8.990, 0,4 kg
-    private val curso = repositorio.buscarPorId(10)!!    // Curso, $89.990
-
-    // ── Catálogo ──
+    private val taza = repositorio.buscarPorId(1)!!   // merch, $8.990, 0,4 kg
+    private val curso = repositorio.buscarPorId(10)!!
 
     @Test
     fun catalogo_filtraPorCategoria() {
@@ -51,8 +48,6 @@ class CarritoYCatalogoTest {
         assertEquals(repositorio.obtenerCatalogo().size, viewModel.estado.value.productosFiltrados.size)
     }
 
-    // ── Carrito ──
-
     @Test
     fun carrito_agregarDosVeces_sumaCantidadYSubtotal() {
         val carrito = CarritoViewModel()
@@ -60,7 +55,7 @@ class CarritoYCatalogoTest {
         carrito.agregar(taza)
         carrito.agregar(taza)
 
-        assertEquals(1, carrito.items.value.size)       // una sola línea
+        assertEquals(1, carrito.items.value.size)
         assertEquals(2, carrito.cantidadTotal())
         assertEquals(17_980, carrito.subtotal())
     }
@@ -76,8 +71,7 @@ class CarritoYCatalogoTest {
     @Test
     fun carrito_noSuperaElStock() {
         val carrito = CarritoViewModel()
-        // "as ProductoFisico": convertimos al tipo hijo para leer su stock
-        val cajaConservacion = repositorio.buscarPorId(6) as ProductoFisico   // stock 8
+        val cajaConservacion = repositorio.buscarPorId(6) as ProductoFisico
 
         repeat(cajaConservacion.stock) { carrito.agregar(cajaConservacion) }
 
@@ -110,12 +104,10 @@ class CarritoYCatalogoTest {
         val carrito = CarritoViewModel()
         carrito.agregar(taza)
         carrito.agregar(taza)
-        carrito.agregar(curso)   // el curso pesa 0
+        carrito.agregar(curso)
 
         assertEquals(0.8, carrito.pesoTotalKg(), 0.0001)
     }
-
-    // ── POO: herencia y polimorfismo ──
 
     @Test
     fun catalogo_tieneProductosDeAmbasSubclases() {
@@ -129,9 +121,9 @@ class CarritoYCatalogoTest {
     fun polimorfismo_cadaSubclaseDefineSuLimiteYSuAccion() {
         val caja = repositorio.buscarPorId(6) as ProductoFisico
 
-        assertEquals(caja.stock, caja.limiteCompra())        // ProductoFisico → su stock
-        assertEquals(1, curso.limiteCompra())                 // Curso → una inscripción
-        assertEquals("Inscribirme", curso.etiquetaAccion())   // Curso sobrescribe el texto
+        assertEquals(caja.stock, caja.limiteCompra())
+        assertEquals(1, curso.limiteCompra())
+        assertEquals("Inscribirme", curso.etiquetaAccion())
         assertEquals("Agregar al carrito", caja.etiquetaAccion())
         assertFalse(curso.requiereEnvio)
         assertTrue(caja.requiereEnvio)

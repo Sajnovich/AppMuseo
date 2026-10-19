@@ -25,13 +25,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import com.example.appmuseo.navigation.Screen
 
-/**
- * BARRA SUPERIOR reutilizable (TopAppBar, Guía 10).
- * Los parámetros "opcionales" (con = null) permiten usarla en todas las pantallas:
- *  - onVolver  → muestra la flecha "atrás"
- *  - onMenu    → muestra el ícono de menú (abre el NavigationDrawer)
- *  - onCarrito → muestra el carrito con un globo (Badge) con la cantidad
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BarraSuperior(
@@ -58,14 +51,12 @@ fun BarraSuperior(
             if (onCarrito != null) {
                 IconButton(onClick = onCarrito) {
                     BadgedBox(badge = { if (cantidadCarrito > 0) Badge { Text("$cantidadCarrito") } }) {
-                        // El contentDescription incluye la cantidad: TalkBack la lee en voz alta
+                        // el contentdescription incluye la cantidad
                         Icon(Icons.Filled.ShoppingCart, contentDescription = "Carrito, $cantidadCarrito productos")
                     }
                 }
             }
         },
-        // primaryContainer es claro en el tema claro y oscuro en el tema oscuro: así los íconos de la
-        // barra de estado del sistema (hora, batería), que se dibujan encima, siempre tienen contraste
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -75,7 +66,6 @@ fun BarraSuperior(
     )
 }
 
-// Datos de cada pestaña de la barra inferior
 private data class Pestana(val screen: Screen, val etiqueta: String, val icono: ImageVector)
 
 private val pestanas = listOf(
@@ -86,10 +76,6 @@ private val pestanas = listOf(
     Pestana(Screen.Perfil, "Perfil", Icons.Filled.Person)
 )
 
-/**
- * BARRA INFERIOR reutilizable (NavigationBar, Guía 10).
- * @param rutaActual ruta de la pantalla que la usa, para marcar la pestaña seleccionada.
- */
 @Composable
 fun BarraInferior(rutaActual: String, onNavegar: (Screen) -> Unit) {
     NavigationBar {
@@ -97,7 +83,7 @@ fun BarraInferior(rutaActual: String, onNavegar: (Screen) -> Unit) {
             NavigationBarItem(
                 selected = rutaActual == pestana.screen.route,
                 onClick = { if (rutaActual != pestana.screen.route) onNavegar(pestana.screen) },
-                // contentDescription = null porque la etiqueta de texto ya describe el ícono
+                // contentDescription = null porque la etiqueta de texto
                 icon = { Icon(pestana.icono, contentDescription = null) },
                 label = { Text(pestana.etiqueta, maxLines = 1) }
             )

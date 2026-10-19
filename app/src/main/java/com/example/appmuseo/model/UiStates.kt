@@ -1,23 +1,16 @@
 package com.example.appmuseo.model
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ESTADOS DE PANTALLA (UiState). Cada pantalla "dibuja" lo que hay en su estado.
-// ─────────────────────────────────────────────────────────────────────────────
-
-/** Estado del catálogo: la lista completa + los filtros activos. */
 data class CatalogoUiState(
     val productos: List<Producto> = emptyList(),
-    val categoriaSeleccionada: Categoria? = null,   // null = "Todos"
+    val categoriaSeleccionada: Categoria? = null,
     val busqueda: String = ""
 ) {
-    // Lista que se muestra en pantalla. Se calcula con filter (Guía 3: colecciones)
     val productosFiltrados: List<Producto>
         get() = productos
             .filter { categoriaSeleccionada == null || it.categoria == categoriaSeleccionada }
             .filter { busqueda.isBlank() || it.nombre.contains(busqueda.trim(), ignoreCase = true) }
 }
 
-/** Estado del formulario de solicitud de compra / inscripción (Guía 11). */
 data class SolicitudUiState(
     val nombre: String = "",
     val correo: String = "",
@@ -40,7 +33,6 @@ data class SolicitudErrores(
         listOfNotNull(nombre, correo, direccion, zona, terminos).isNotEmpty()
 }
 
-/** Estado del cotizador. Peso y monto se guardan como texto porque vienen de un TextField. */
 data class CotizadorUiState(
     val tipoDestino: TipoDestino = TipoDestino.NACIONAL,
     val zona: Zona? = null,
@@ -50,7 +42,6 @@ data class CotizadorUiState(
     val errores: CotizadorErrores = CotizadorErrores()
 )
 
-/** Un error por campo del cotizador (mismo patrón que los demás formularios). */
 data class CotizadorErrores(
     val zona: String? = null,
     val peso: String? = null
@@ -58,26 +49,20 @@ data class CotizadorErrores(
     fun hayErrores(): Boolean = listOfNotNull(zona, peso).isNotEmpty()
 }
 
-/** Estado del mapa de museos. */
 data class MapaUiState(
     val museos: List<Museo> = emptyList(),
-    val paisSeleccionado: String? = null,    // null = todos los países
+    val paisSeleccionado: String? = null,   // null = todos los países
     val museoSeleccionado: Museo? = null,
-    val cercano: MuseoCercano? = null        // resultado de "Museo más cercano a mí"
+    val cercano: MuseoCercano? = null
 ) {
     val museosVisibles: List<Museo>
         get() = if (paisSeleccionado == null) museos else museos.filter { it.pais == paisSeleccionado }
 
-    // map + distinct + sorted: lista de países sin repetir y ordenada
+    // map + distinct + sorted
     val paises: List<String>
         get() = museos.map { it.pais }.distinct().sorted()
 }
 
-/**
- * Resultado de buscar el museo más cercano.
- * @param ubicacionAproximada true si no se pudo leer la ubicación del teléfono
- * (sin permiso o sin señal) y se usó la ubicación de referencia.
- */
 data class MuseoCercano(
     val museo: Museo,
     val distanciaKm: Double,

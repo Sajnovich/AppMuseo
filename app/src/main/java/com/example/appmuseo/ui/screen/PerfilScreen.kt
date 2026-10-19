@@ -58,10 +58,6 @@ import com.example.appmuseo.viewmodel.MainViewModel
 import com.example.appmuseo.viewmodel.PerfilViewModel
 import com.example.appmuseo.viewmodel.SesionViewModel
 
-/**
- * PERFIL: foto con cámara o galería (Guía 13), preferencia de notificaciones guardada en
- * DataStore con color animado y texto derivado (Guía 12), y cierre de sesión con confirmación.
- */
 @Composable
 fun PerfilScreen(
     perfilViewModel: PerfilViewModel,
@@ -76,7 +72,7 @@ fun PerfilScreen(
 
     val context = LocalContext.current
 
-    // Si niega el permiso, la preferencia igual se activa, pero los avisos se verán solo dentro de la app
+    // si niega el permiso, la preferencia igual se activa,
     val lanzadorPermisoNotificaciones = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { concedido: Boolean ->
@@ -93,7 +89,6 @@ fun PerfilScreen(
                 mostrarDialogoSalir = false
                 sesionViewModel.cerrarSesion()
                 carritoViewModel.vaciar()
-                // popUpTo Home inclusive: se borra todo el historial y "atrás" no vuelve a la app
                 mainViewModel.navigateTo(Screen.Login, popUpToRoute = Screen.Home, inclusive = true)
             },
             onCancelar = { mostrarDialogoSalir = false }
@@ -113,7 +108,6 @@ fun PerfilScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Foto de perfil (componente reutilizable)
             ImagenInteligente(uri = imagenUri)
             BotonesCamaraGaleria(onImagenObtenida = { uri -> perfilViewModel.actualizarImagen(uri) })
 
@@ -130,25 +124,21 @@ fun PerfilScreen(
             Spacer(modifier = Modifier.height(4.dp))
             Text("Notificaciones", style = MaterialTheme.typography.titleMedium)
 
-            // Mientras DataStore no responde (null) mostramos un indicador de carga
             val activas = notificaciones
             if (activas == null) {
                 CircularProgressIndicator()
             } else {
-                // Color animado según el estado (verde = activadas, ámbar = desactivadas)
                 val colorAnimado by animateColorAsState(
                     targetValue = if (activas) VerdeCompletado else AmbarPendiente,
                     animationSpec = tween(durationMillis = 500),
                     label = "colorNotificaciones"
                 )
-                // derivedStateOf: el texto se recalcula solo cuando cambia "activas"
                 val textoBoton by remember(activas) {
                     derivedStateOf { if (activas) "Desactivar notificaciones" else "Activar notificaciones" }
                 }
 
                 Button(
                     onClick = {
-                        // Al ACTIVARLAS en Android 13+ se pide el permiso; al desactivarlas no hace falta
                         if (!activas && Notificaciones.necesitaPermiso(context)) {
                             lanzadorPermisoNotificaciones.launch(Manifest.permission.POST_NOTIFICATIONS)
                         } else {
@@ -179,7 +169,7 @@ fun PerfilScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
-                onClick = { mostrarDialogoSalir = true },   // primero se pide confirmación
+                onClick = { mostrarDialogoSalir = true },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, modifier = Modifier.size(20.dp))

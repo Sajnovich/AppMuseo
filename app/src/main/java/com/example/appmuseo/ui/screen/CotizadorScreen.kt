@@ -50,7 +50,6 @@ import com.example.appmuseo.utils.formatearPrecio
 import com.example.appmuseo.viewmodel.CotizadorViewModel
 import com.example.appmuseo.viewmodel.MainViewModel
 
-/** COTIZADOR DE ENVÍOS nacional e internacional (reglas simuladas del courier). */
 @Composable
 fun CotizadorScreen(cotizadorViewModel: CotizadorViewModel, mainViewModel: MainViewModel) {
     val estado by cotizadorViewModel.estado.collectAsState()
@@ -62,7 +61,7 @@ fun CotizadorScreen(cotizadorViewModel: CotizadorViewModel, mainViewModel: MainV
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .imePadding()   // el teclado no tapa los campos de peso y monto
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -104,7 +103,6 @@ fun CotizadorScreen(cotizadorViewModel: CotizadorViewModel, mainViewModel: MainV
                 }
             }
 
-            // Error de la zona (los RadioButton no tienen "supportingText", así que va como texto)
             estado.errores.zona?.let {
                 Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
             }
@@ -138,7 +136,6 @@ fun CotizadorScreen(cotizadorViewModel: CotizadorViewModel, mainViewModel: MainV
                 Text("Calcular envío")
             }
 
-            // Resultado con animación de aparición
             val resultado = estado.resultado
             AnimatedVisibility(visible = resultado != null, enter = expandVertically() + fadeIn()) {
                 if (resultado != null) {
@@ -164,7 +161,6 @@ fun CotizadorScreen(cotizadorViewModel: CotizadorViewModel, mainViewModel: MainV
                 }
             }
 
-            // Reglas visibles para el usuario: claridad en el costo (UX)
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text("¿Cómo se calcula?", style = MaterialTheme.typography.titleSmall)

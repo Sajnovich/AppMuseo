@@ -12,16 +12,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.appmuseo.ui.theme.MuseoTheme
 
-/**
- * DIÁLOGO DE CONFIRMACIÓN reutilizable (principio de usabilidad: "prevenir errores").
- * Antes de una acción que no se puede deshacer (cerrar sesión, eliminar una solicitud)
- * le preguntamos al usuario si está seguro.
- *
- * Es "sin estado": quien lo usa decide cuándo mostrarlo con una variable
- * (ej: var mostrarDialogo by remember { mutableStateOf(false) }).
- *
- * @param esDestructiva si es true, el botón de confirmar se pinta con el color de error (rojo).
- */
 @Composable
 fun DialogoConfirmacion(
     titulo: String,
@@ -51,10 +41,6 @@ fun DialogoConfirmacion(
     )
 }
 
-/**
- * Caso particular del diálogo anterior, usado en el Perfil y en el menú lateral.
- * Así el texto del cierre de sesión se escribe una sola vez.
- */
 @Composable
 fun DialogoCerrarSesion(onConfirmar: () -> Unit, onCancelar: () -> Unit) {
     DialogoConfirmacion(

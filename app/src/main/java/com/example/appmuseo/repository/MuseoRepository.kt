@@ -2,11 +2,6 @@ package com.example.appmuseo.repository
 
 import com.example.appmuseo.model.Museo
 
-/**
- * "API simulada de geolocalización": entrega la matriz de coordenadas de los
- * museos virtuales. Nombres y descripciones son SINTÉTICOS; las coordenadas
- * son las de la ciudad, para que el mapa los ubique correctamente.
- */
 class MuseoRepository {
 
     private val museos = listOf(

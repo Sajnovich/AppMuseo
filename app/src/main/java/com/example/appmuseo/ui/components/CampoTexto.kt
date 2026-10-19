@@ -20,15 +20,6 @@ import androidx.compose.foundation.layout.Column
 import com.example.appmuseo.ui.theme.MuseoTheme
 import com.example.appmuseo.ui.theme.VerdeCompletado
 
-/**
- * CAMPO DE FORMULARIO ESTÁNDAR de toda la app (todos los formularios lo usan).
- * Así todos los campos se ven y avisan igual:
- *  - ícono a la izquierda que indica qué dato se pide,
- *  - borde rojo + ícono de error + mensaje debajo cuando el dato no es válido,
- *  - ícono verde de "listo" cuando el dato ya es correcto (retroalimentación positiva),
- *  - texto de ayuda opcional cuando no hay error.
- * La lógica de qué es válido NO está aquí: viene de Validaciones (lógica centralizada).
- */
 @Composable
 fun CampoTexto(
     valor: String,
@@ -43,7 +34,7 @@ fun CampoTexto(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    accionFinal: (@Composable () -> Unit)? = null,   // ej: botón para mostrar la contraseña
+    accionFinal: (@Composable () -> Unit)? = null,
     singleLine: Boolean = true,
     enabled: Boolean = true
 ) {
@@ -53,7 +44,7 @@ fun CampoTexto(
         label = { Text(etiqueta) },
         placeholder = if (placeholder != null) { { Text(placeholder) } } else null,
         leadingIcon = { Icon(icono, contentDescription = null) },
-        // Ícono de la derecha. Prioridad: acción propia > error > válido
+        // ÍCONO DE LA DERECHA
         trailingIcon = if (accionFinal != null || error != null || esValido) {
             {
                 when {

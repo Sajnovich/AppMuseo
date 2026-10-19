@@ -27,11 +27,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-/**
- * NOTIFICACIÓN "PUSH" SIMULADA: un aviso que baja desde arriba con animación
- * (AnimatedVisibility, Guía 12). Las notificaciones push reales necesitan un servidor
- * (Firebase); por eso el caso pide simularlas.
- */
 @Composable
 fun NotificacionSimulada(visible: Boolean, mensaje: String, modifier: Modifier = Modifier) {
     AnimatedVisibility(
@@ -44,7 +39,7 @@ fun NotificacionSimulada(visible: Boolean, mensaje: String, modifier: Modifier =
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
-                // Accesibilidad: TalkBack lee el aviso automáticamente cuando aparece
+                // accesibilidad
                 .semantics { liveRegion = LiveRegionMode.Polite },
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,

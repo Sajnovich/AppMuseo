@@ -11,15 +11,13 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Pruebas del login con credenciales en variable (sin backend). */
 class LoginTest {
 
-    // demoraMs = 0 para que las pruebas no esperen 1,5 segundos
+    // demoraMs = 0 para que las pruebas no esperen 1,5
     private val repositorio = AuthRepository(demoraMs = 0)
 
     @Test
     fun login_conCredencialesCorrectas_devuelveExito() = runBlocking {
-        // runBlocking permite llamar a una función suspend dentro de la prueba (Guía 5)
         val resultado = repositorio.login("admin@museo.cl", "museo123")
 
         assertTrue(resultado is ResultadoLogin.Exito)
@@ -63,8 +61,8 @@ class LoginTest {
     @Test
     fun viewModel_alEscribirSeBorraElErrorDelCampo() {
         val viewModel = LoginViewModel(repositorio)
-        viewModel.validarFormulario()                  // genera errores
-        viewModel.onCorreoChange("admin@museo.cl")     // el usuario corrige
+        viewModel.validarFormulario()
+        viewModel.onCorreoChange("admin@museo.cl")
 
         assertNull(viewModel.estado.value.errores.correo)
     }

@@ -9,19 +9,11 @@ import com.example.appmuseo.model.PerfilUsuario
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-// Declaramos el DataStore UNA sola vez para toda la app (Guía 12)
+// Declaramos el DataStore UNA sola vez para toda la app
 val Context.dataStore by preferencesDataStore(name = "preferencias_museo")
 
-/**
- * DATASTORE PREFERENCES: guarda datos pequeños de tipo "clave = valor"
- * que deben sobrevivir aunque se cierre la app (persistencia local de estados esenciales).
- *  - Sesión iniciada y datos del usuario
- *  - Preferencia de notificaciones
- * (Para listas de registros usamos Room, que es una base de datos real.)
- */
 class SesionDataStore(private val context: Context) {
 
-    // Claves con las que se guarda cada dato
     private val SESION_ACTIVA = booleanPreferencesKey("sesion_activa")
     private val NOMBRE = stringPreferencesKey("nombre_usuario")
     private val CORREO = stringPreferencesKey("correo_usuario")
@@ -46,7 +38,6 @@ class SesionDataStore(private val context: Context) {
         }
     }
 
-    // Flow<Boolean?>: devuelve null si nunca se ha guardado nada
     fun obtenerSesionActiva(): Flow<Boolean?> =
         context.dataStore.data.map { preferencias -> preferencias[SESION_ACTIVA] }
 
@@ -63,7 +54,6 @@ class SesionDataStore(private val context: Context) {
         context.dataStore.edit { preferencias -> preferencias[NOTIFICACIONES] = activas }
     }
 
-    // Por defecto las notificaciones están activadas (?: true)
     fun obtenerNotificaciones(): Flow<Boolean> =
         context.dataStore.data.map { preferencias -> preferencias[NOTIFICACIONES] ?: true }
 }

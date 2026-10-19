@@ -17,14 +17,11 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Pruebas del mapa (incluye museo más cercano), el escáner simulado, el cotizador (ViewModel) y las rutas. */
 class MapaEscanerCotizadorTest {
-
-    // ── Mapa ──
 
     @Test
     fun proyeccion_siempreQuedaDentroDelMapa() {
-        val (x, y) = ProyeccionMapa.aPosicionRelativa(-33.44, -70.65)   // Santiago
+        val (x, y) = ProyeccionMapa.aPosicionRelativa(-33.44, -70.65)
         assertTrue(x in 0f..1f && y in 0f..1f)
     }
 
@@ -33,11 +30,9 @@ class MapaEscanerCotizadorTest {
         val santiago = ProyeccionMapa.aPosicionRelativa(-33.44, -70.65)
         val madrid = ProyeccionMapa.aPosicionRelativa(40.42, -3.70)
 
-        assertTrue(madrid.first > santiago.first)    // más a la derecha
-        assertTrue(madrid.second < santiago.second)  // más arriba
+        assertTrue(madrid.first > santiago.first)   // MÁS A LA DERECHA
+        assertTrue(madrid.second < santiago.second)   // MAS ARRIBA
     }
-
-    // ── Distancia y museo más cercano (ubicación) ──
 
     @Test
     fun distancia_entreUnPuntoYElMismo_esCero() {
@@ -69,11 +64,11 @@ class MapaEscanerCotizadorTest {
         val viewModel = MapaViewModel()
         viewModel.seleccionarPais("Chile")
 
-        viewModel.buscarMuseoCercano(40.40, -3.68)   // cerca de Madrid
+        viewModel.buscarMuseoCercano(40.40, -3.68)
 
         val estado = viewModel.estado.value
         assertEquals(13, estado.museoSeleccionado?.id)
-        assertNull(estado.paisSeleccionado)           // el filtro se quita para ver el museo en el mapa
+        assertNull(estado.paisSeleccionado)   // el filtro se quita para ver el museo en el mapa
         assertFalse(estado.cercano!!.ubicacionAproximada)
     }
 
@@ -81,12 +76,12 @@ class MapaEscanerCotizadorTest {
     fun mapa_buscarCercanoSinUbicacion_usaLaReferenciaYLoIndica() {
         val viewModel = MapaViewModel()
 
-        viewModel.buscarMuseoCercano(null, null)      // sin permiso o sin señal
+        viewModel.buscarMuseoCercano(null, null)
 
         val cercano = viewModel.estado.value.cercano
         assertNotNull(cercano)
         assertTrue(cercano!!.ubicacionAproximada)
-        assertEquals(1, cercano.museo.id)             // el de Santiago, a pocos km de la referencia
+        assertEquals(1, cercano.museo.id)   // el de santiago, a pocos km de la referencia
         assertTrue(cercano.distanciaKm < 5.0)
     }
 
@@ -117,8 +112,6 @@ class MapaEscanerCotizadorTest {
 
         assertNull(viewModel.estado.value.museoSeleccionado)
     }
-
-    // ── Escáner ──
 
     @Test
     fun escaner_codigoExistente_encuentraProducto() {
@@ -162,8 +155,6 @@ class MapaEscanerCotizadorTest {
         }
     }
 
-    // ── Cotizador (ViewModel) ──
-
     @Test
     fun cotizador_sinZona_muestraError() {
         val viewModel = CotizadorViewModel()
@@ -172,7 +163,7 @@ class MapaEscanerCotizadorTest {
         viewModel.calcular()
 
         assertNotNull(viewModel.estado.value.errores.zona)
-        assertNull(viewModel.estado.value.errores.peso)   // el peso sí estaba bien
+        assertNull(viewModel.estado.value.errores.peso)
         assertNull(viewModel.estado.value.resultado)
     }
 
@@ -199,13 +190,11 @@ class MapaEscanerCotizadorTest {
         assertNotNull(viewModel.estado.value.errores.peso)
     }
 
-    // ── Navegación ──
-
     @Test
     fun escaner_codigoLeidoConCamara_encuentraElProducto() {
         val viewModel = EscanerViewModel()
 
-        viewModel.onCodigoLeido(" mdm-001 ")   // así lo entrega el lector: puede venir con espacios o minúsculas
+        viewModel.onCodigoLeido(" mdm-001 ")
 
         assertEquals("MDM-001", viewModel.codigo.value)
         assertNotNull(viewModel.productoDetectado.value)

@@ -11,15 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-/**
- * Maneja la SESIÓN del usuario con DataStore (Guía 12).
- * Es AndroidViewModel porque DataStore necesita el "context" de la aplicación.
- */
 class SesionViewModel(application: Application) : AndroidViewModel(application) {
 
     private val sesionDataStore = SesionDataStore(application)
 
-    // null = todavía estamos leyendo DataStore (se muestra la pantalla de carga)
     private val _sesionActiva = MutableStateFlow<Boolean?>(null)
     val sesionActiva: StateFlow<Boolean?> = _sesionActiva
 
@@ -32,8 +27,7 @@ class SesionViewModel(application: Application) : AndroidViewModel(application) 
 
     private fun cargarSesion() {
         viewModelScope.launch {
-            delay(1_200) // Simula la carga inicial para mostrar el CircularProgressIndicator
-            // first() toma el valor ACTUAL del Flow y termina
+            delay(1_200)
             val activa = sesionDataStore.obtenerSesionActiva().first() ?: false
             if (activa) {
                 _usuario.value = sesionDataStore.obtenerUsuario().first()
@@ -43,10 +37,8 @@ class SesionViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun iniciarSesion(perfil: PerfilUsuario) {
-        // Primero actualizamos el estado (la pantalla de Inicio ya tiene el nombre al abrirse)
         _usuario.value = perfil
         _sesionActiva.value = true
-        // y después lo guardamos en el teléfono
         viewModelScope.launch { sesionDataStore.guardarSesion(perfil) }
     }
 

@@ -13,16 +13,12 @@ import com.example.appmuseo.ui.theme.MuseoTheme
 import com.example.appmuseo.utils.Notificaciones
 import org.osmdroid.config.Configuration
 
-/**
- * Punto de entrada de la app. Solo aplica el tema y arranca la navegación;
- * cada pantalla tiene su propio Scaffold, que se encarga de los márgenes del sistema.
- */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()   // la app dibuja detrás de la barra de estado (como en la Guía 11)
+        enableEdgeToEdge()
         Notificaciones.crearCanal(this)
-        // osmdroid exige identificar la app ante los servidores de OpenStreetMap (antes de crear el mapa)
+        // osmdroid exige identificar la app ante los servidores
         Configuration.getInstance().userAgentValue = "AppMuseoDuoc/1.0 (proyecto estudiantil)"
         setContent {
             MuseoTheme {

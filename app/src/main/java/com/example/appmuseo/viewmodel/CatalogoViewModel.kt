@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
-/** Catálogo unificado: carga los productos y aplica los filtros de categoría y búsqueda. */
 class CatalogoViewModel(
     private val repositorio: CatalogoRepository = CatalogoRepository()
 ) : ViewModel() {

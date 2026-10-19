@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Tema base de Android. Los colores reales de la app están en ui/theme (Compose) -->
     <style name="Theme.AppMuseo" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

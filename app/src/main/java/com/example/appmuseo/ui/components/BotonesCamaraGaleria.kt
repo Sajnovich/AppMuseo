@@ -28,12 +28,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.appmuseo.utils.crearUriParaFoto
 
-/**
- * BOTONES DE CÁMARA Y GALERÍA (Guía 13) con la API moderna ActivityResult.
- * rememberLauncherForActivityResult registra un "lanzador" y recibe la respuesta en un callback.
- *
- * @param onImagenObtenida se llama con el Uri de la imagen SOLO si el usuario no canceló.
- */
 @Composable
 fun BotonesCamaraGaleria(
     onImagenObtenida: (Uri) -> Unit,
@@ -42,18 +36,12 @@ fun BotonesCamaraGaleria(
     textoCamara: String = "Cámara"
 ) {
     val context = LocalContext.current
-    // Uri donde la cámara guardará la foto (lo crea FileProvider antes de abrir la cámara).
-    // rememberSaveable (no remember): si Android cierra y recrea la Activity mientras la cámara
-    // está abierta, el Uri se recupera y la foto no se pierde.
     var uriTemporal by rememberSaveable { mutableStateOf<Uri?>(null) }
 
-    // 1) GALERÍA: PickVisualMedia abre el selector de fotos del sistema (Android 13+, y una
-    //    versión compatible en equipos anteriores). No necesita permisos. Devuelve null si se cancela.
     val lanzadorGaleria = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
-        if (uri != null) onImagenObtenida(uri)        // si cancela, no hacemos nada → no crashea
+        if (uri != null) onImagenObtenida(uri)
     }
 
-    // 2) CÁMARA: TakePicture guarda la foto en el Uri que le pasamos y devuelve true / false.
     val lanzadorCamara = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { exito: Boolean ->
         val uri = uriTemporal
         if (exito && uri != null) onImagenObtenida(uri)
@@ -65,12 +53,9 @@ fun BotonesCamaraGaleria(
             uriTemporal = nuevaUri
             lanzadorCamara.launch(nuevaUri)
         } catch (e: ActivityNotFoundException) {
-            // Control de errores: equipo sin app de cámara → avisamos en vez de cerrar la app
             Toast.makeText(context, "No se encontró una app de cámara", Toast.LENGTH_SHORT).show()
         }
     }
-
-    // 3) Sin permiso CAMERA: la foto la toma la app de Cámara del teléfono (ver AndroidManifest.xml)
 
     Row(
         modifier = modifier,

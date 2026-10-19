@@ -8,7 +8,6 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Pruebas de las reglas algorítmicas del courier simulado. */
 class CotizadorEnvioTest {
 
     private val regionMetropolitana = CotizadorEnvio.zonas.first { it.nombre == "Región Metropolitana" }
@@ -41,7 +40,6 @@ class CotizadorEnvioTest {
 
     @Test
     fun envioInternacional_nuncaEsGratis() {
-        // 14.990 + 5.990 × 2 = 26.970
         val cotizacion = CotizadorEnvio.cotizar(sudamerica, 2.0, subtotalCompra = 60_000)
 
         assertFalse(cotizacion.envioGratis)

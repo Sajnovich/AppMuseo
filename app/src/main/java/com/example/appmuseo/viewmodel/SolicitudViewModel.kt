@@ -23,13 +23,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * SOLICITUDES de compra / inscripción:
- *  - Formulario con validaciones (Guía 11)
- *  - Cotización del envío según la zona
- *  - Persistencia en ROOM (lista de solicitudes con estado pendiente / completada)
- *  - Notificaciones: una real del sistema (barra de estado) + un aviso animado dentro de la app
- */
 class SolicitudViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repositorio = SolicitudRepository(
@@ -40,29 +33,24 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
     private val _formulario = MutableStateFlow(SolicitudUiState())
     val formulario: StateFlow<SolicitudUiState> = _formulario
 
-    // true mientras se guarda en Room: evita registrar dos veces la misma solicitud con un doble toque
+    // true mientras se guarda en room
     private val _guardando = MutableStateFlow(false)
     val guardando: StateFlow<Boolean> = _guardando
 
     private val _solicitudes = MutableStateFlow<List<SolicitudEntity>>(emptyList())
     val solicitudes: StateFlow<List<SolicitudEntity>> = _solicitudes
 
-    // Notificación simulada: texto + visible (mismo patrón que mostrarMensaje en la Guía 12)
     private val _textoNotificacion = MutableStateFlow("")
     val textoNotificacion: StateFlow<String> = _textoNotificacion
     private val _mostrarNotificacion = MutableStateFlow(false)
     val mostrarNotificacion: StateFlow<Boolean> = _mostrarNotificacion
 
     init {
-        // Room entrega un Flow: cada vez que cambia la tabla recibimos la lista nueva
         viewModelScope.launch {
             repositorio.obtenerTodas().collect { lista -> _solicitudes.value = lista }
         }
     }
 
-    // ── Formulario ────────────────────────────────────────────────────────────
-
-    /** Completa nombre y correo con los datos de la sesión (si el usuario aún no escribió). */
     fun precargarDatos(nombre: String, correo: String) {
         _formulario.update {
             it.copy(
@@ -92,7 +80,6 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
         _formulario.update { it.copy(tipoDestino = tipo, zona = null, cotizacion = null) }
     }
 
-    /** Al elegir la zona se cotiza el envío con el peso y el subtotal del carrito. */
     fun onZonaChange(zona: Zona, pesoKg: Double, subtotal: Int) {
         try {
             val cotizacion = CotizadorEnvio.cotizar(zona, pesoKg, subtotal)
@@ -100,20 +87,15 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
                 it.copy(zona = zona, cotizacion = cotizacion, errores = it.errores.copy(zona = null))
             }
         } catch (e: IllegalArgumentException) {
-            // Ej: el pedido pesa más de 30 kg
             _formulario.update {
                 it.copy(zona = null, cotizacion = null, errores = it.errores.copy(zona = e.message))
             }
         }
     }
 
-    /**
-     * Si el carrito cambió después de elegir la zona (más productos, otro peso o monto),
-     * se vuelve a cotizar para que el costo de envío no quede desactualizado.
-     */
     fun actualizarCotizacion(pesoKg: Double, subtotal: Int) {
         val zona = _formulario.value.zona ?: return
-        if (pesoKg <= 0.0) return   // solo cursos: no hay envío que cotizar
+        if (pesoKg <= 0.0) return
         onZonaChange(zona, pesoKg, subtotal)
     }
 
@@ -123,12 +105,6 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
         return !errores.hayErrores()
     }
 
-    // ── Room ──────────────────────────────────────────────────────────────────
-
-    /**
-     * Guarda la solicitud en Room. onExito se ejecuta después de guardar
-     * (la pantalla lo usa para vaciar el carrito y navegar).
-     */
     fun confirmarSolicitud(items: List<ItemCarrito>, onExito: () -> Unit) {
         if (items.isEmpty() || _guardando.value) return
         val requiereEnvio = items.any { it.producto.requiereEnvio }
@@ -160,14 +136,13 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
         _guardando.value = true
         viewModelScope.launch {
             val idNuevo = repositorio.insertar(solicitud)
-            _formulario.value = SolicitudUiState()   // limpia el formulario
+            _formulario.value = SolicitudUiState()
             _guardando.value = false
             onExito()
             notificar(idNuevo.toInt(), "Solicitud registrada", "Solicitud #$idNuevo registrada. Estado: pendiente.")
         }
     }
 
-    /** Simula el avance del proceso: pendiente → completada. */
     fun marcarCompletada(solicitud: SolicitudEntity) {
         viewModelScope.launch {
             repositorio.actualizarEstado(solicitud.id, EstadoSolicitud.COMPLETADA)
@@ -179,11 +154,6 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch { repositorio.eliminar(solicitud) }
     }
 
-    /**
-     * Avisa al usuario, solo si tiene activadas las notificaciones en su perfil (DataStore):
-     *  1) Notificación REAL del sistema (si dio el permiso), visible aunque salga de la app.
-     *  2) Aviso animado dentro de la app ("push" simulado), que se ve siempre.
-     */
     private suspend fun notificar(id: Int, titulo: String, texto: String) {
         if (!sesionDataStore.obtenerNotificaciones().first()) return
         Notificaciones.mostrar(getApplication<Application>(), id, titulo, texto)

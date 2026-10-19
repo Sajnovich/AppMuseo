@@ -55,10 +55,6 @@ import com.example.appmuseo.viewmodel.EscanerViewModel
 import com.example.appmuseo.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 
-/**
- * ESCÁNER DE PRODUCTOS (simulado). Usa la CÁMARA real para la foto (recurso nativo, Guía 13)
- * y simula la lectura del código de barras. También permite escribir el código a mano.
- */
 @Composable
 fun EscanerScreen(
     escanerViewModel: EscanerViewModel,
@@ -91,7 +87,7 @@ fun EscanerScreen(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .imePadding()   // el teclado no tapa el campo del código
+                .imePadding()   // el teclado no tapa el campo del codigo
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -103,7 +99,7 @@ fun EscanerScreen(
                 textAlign = TextAlign.Center
             )
 
-            // Reutilizamos el componente de la Guía 13
+            // reutilizamos el componente de la guia 13
             ImagenInteligente(
                 uri = fotoUri,
                 tamano = 160.dp,
@@ -111,7 +107,6 @@ fun EscanerScreen(
                 iconoPorDefecto = Icons.Filled.QrCodeScanner
             )
 
-            // LECTURA REAL con el lector de Google (no pide permiso de cámara: lo maneja Google Play services)
             Button(
                 onClick = {
                     escanearCodigo(
@@ -127,7 +122,6 @@ fun EscanerScreen(
                 Text("Escanear código QR o de barras")
             }
 
-            // Respaldo: foto + lectura simulada (útil en el emulador, que no tiene códigos reales)
             BotonesCamaraGaleria(
                 onImagenObtenida = { uri -> escanerViewModel.onFotoCapturada(uri) },
                 mostrarGaleria = false,
@@ -139,7 +133,6 @@ fun EscanerScreen(
 
             HorizontalDivider()
 
-            // Ingreso manual: alternativa accesible si la cámara no está disponible
             CampoTexto(
                 valor = codigo,
                 onValorChange = escanerViewModel::onCodigoChange,
@@ -167,7 +160,7 @@ fun EscanerScreen(
                 }
             }
 
-            // Producto detectado (reutiliza TarjetaProducto)
+            // producto detectado (reutiliza tarjetaproducto)
             AnimatedVisibility(visible = producto != null) {
                 producto?.let { p ->
                     TarjetaProducto(
@@ -186,11 +179,6 @@ fun EscanerScreen(
     }
 }
 
-/**
- * Abre el lector de códigos de Google (Google Code Scanner, ejemplo 105 del curso).
- * Google Play services muestra su propia pantalla de cámara y devuelve el texto leído,
- * por eso la app NO necesita pedir el permiso de cámara para esta función.
- */
 private fun escanearCodigo(
     context: Context,
     alLeer: (String) -> Unit,

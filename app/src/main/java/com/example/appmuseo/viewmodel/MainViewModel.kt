@@ -9,15 +9,10 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
-/**
- * ViewModel de NAVEGACIÓN (Guía 10).
- * Emite eventos por un SharedFlow; AppNavigation los escucha y mueve el NavController.
- * Así la lógica de "a dónde ir" queda en el ViewModel y no dentro de cada pantalla.
- */
 class MainViewModel : ViewModel() {
 
     private val _navigationEvents = MutableSharedFlow<NavigationEvent>()
-    // Versión de solo lectura para que la UI pueda observar pero no emitir
+    // versión de solo lectura para que la ui pueda observar
     val navigationEvents: SharedFlow<NavigationEvent> = _navigationEvents.asSharedFlow()
 
     fun navigateTo(
@@ -31,7 +26,6 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    /** Navegación de la barra inferior: siempre deja "Inicio" como base de la pila. */
     fun navegarPestana(screen: Screen) {
         navigateTo(screen, popUpToRoute = Screen.Home, singleTop = true)
     }

@@ -12,10 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * REGISTRO DE USUARIOS (Guía 11): estado del formulario + validación centralizada en
- * Validaciones + guardado en Room a través del AuthRepository.
- */
 class RegistroViewModel(
     private val authRepository: AuthRepository = AuthRepository()
 ) : ViewModel() {
@@ -23,7 +19,7 @@ class RegistroViewModel(
     private val _estado = MutableStateFlow(RegistroUiState())
     val estado: StateFlow<RegistroUiState> = _estado
 
-    // Cada cambio actualiza su campo y borra SOLO su propio error
+    // Cada cambio actualiza su campo y borra SOLO su propio
     fun onNombreChange(valor: String) {
         _estado.update { it.copy(nombre = valor, errores = it.errores.copy(nombre = null), resultado = null) }
     }
@@ -56,7 +52,7 @@ class RegistroViewModel(
 
     fun registrar() {
         if (!validarFormulario()) return
-        if (_estado.value.resultado is ResultadoRegistro.Registrando) return   // evita doble envío
+        if (_estado.value.resultado is ResultadoRegistro.Registrando) return
 
         val actual = _estado.value
         viewModelScope.launch {

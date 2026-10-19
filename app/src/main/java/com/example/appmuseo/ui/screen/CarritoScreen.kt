@@ -51,10 +51,9 @@ import com.example.appmuseo.utils.formatearPrecio
 import com.example.appmuseo.viewmodel.CarritoViewModel
 import com.example.appmuseo.viewmodel.MainViewModel
 
-/** CARRITO: lista de productos/cursos elegidos, cantidades y subtotal. */
 @Composable
 fun CarritoScreen(carritoViewModel: CarritoViewModel, mainViewModel: MainViewModel) {
-    // Al observar "items", la pantalla se vuelve a dibujar cada vez que cambia el carrito
+    // al observar "items", la pantalla se vuelve a dibujar
     val items by carritoViewModel.items.collectAsState()
     val subtotal = items.sumOf { it.subtotal }
 
@@ -62,12 +61,10 @@ fun CarritoScreen(carritoViewModel: CarritoViewModel, mainViewModel: MainViewMod
         topBar = { BarraSuperior(titulo = "Mi carrito", onVolver = { mainViewModel.navigateBack() }) },
         bottomBar = {
             if (items.isNotEmpty()) {
-                // Surface da un fondo elevado; navigationBarsPadding evita quedar bajo la barra del sistema
                 Surface(tonalElevation = 3.dp) {
                     Column(modifier = Modifier.navigationBarsPadding().padding(16.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("Subtotal", style = MaterialTheme.typography.titleMedium)
-                            // El total cambia con un fundido suave cada vez que se modifica el carrito
                             AnimatedContent(targetState = subtotal, label = "subtotal") { total ->
                                 Text(formatearPrecio(total), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                             }
@@ -95,7 +92,6 @@ fun CarritoScreen(carritoViewModel: CarritoViewModel, mainViewModel: MainViewMod
         }
     ) { innerPadding ->
         if (items.isEmpty()) {
-            // Estado vacío: explicamos qué hacer en vez de mostrar una pantalla en blanco (UX)
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -157,10 +153,8 @@ private fun FilaCarrito(
                 Text(item.producto.nombre, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(formatearPrecio(item.subtotal), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
                 if (!esCurso) {
-                    // Controles de cantidad (los cursos son siempre 1 inscripción)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = onRestar) { Icon(Icons.Filled.Remove, contentDescription = "Quitar una unidad") }
-                        // AnimatedContent: el número "rueda" hacia arriba al sumar y hacia abajo al restar
                         AnimatedContent(
                             targetState = item.cantidad,
                             transitionSpec = {

@@ -19,10 +19,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * "Doble" de prueba del DAO: guarda los usuarios en un mapa en memoria.
- * Como UsuarioDao es una interfaz, podemos implementarla sin Room ni emulador.
- */
 class FakeUsuarioDao : UsuarioDao {
     val usuarios = mutableMapOf<String, UsuarioEntity>()
 
@@ -33,7 +29,6 @@ class FakeUsuarioDao : UsuarioDao {
     }
 }
 
-/** Pruebas del registro de usuarios, el hash de contraseñas y sus validaciones. */
 class RegistroTest {
 
     private val dao = FakeUsuarioDao()
@@ -87,8 +82,8 @@ class RegistroTest {
 
     @Test
     fun claveSegura_exigeLetrasYNumeros() {
-        assertNotNull(Validaciones.validarClaveSegura("abcdefg"))   // sin números
-        assertNotNull(Validaciones.validarClaveSegura("1234567"))   // sin letras
+        assertNotNull(Validaciones.validarClaveSegura("abcdefg"))
+        assertNotNull(Validaciones.validarClaveSegura("1234567"))
         assertNull(Validaciones.validarClaveSegura("museo2026"))
     }
 
@@ -113,9 +108,9 @@ class RegistroTest {
     @Test
     fun viewModel_formularioCompleto_esValido_yAlCorregirSeBorraElError() {
         val viewModel = RegistroViewModel(repositorio)
-        viewModel.validarFormulario()                       // genera errores
+        viewModel.validarFormulario()   // genera errores
         viewModel.onNombreChange("Ana Pérez")
-        assertNull(viewModel.estado.value.errores.nombre)   // se borró solo el error del nombre
+        assertNull(viewModel.estado.value.errores.nombre)   // se borro solo el error del nombre
 
         viewModel.onCorreoChange("ana@correo.cl")
         viewModel.onClaveChange("clave123")

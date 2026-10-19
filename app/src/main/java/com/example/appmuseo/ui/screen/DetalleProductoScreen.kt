@@ -52,9 +52,6 @@ import com.example.appmuseo.viewmodel.CatalogoViewModel
 import com.example.appmuseo.viewmodel.MainViewModel
 import kotlinx.coroutines.delay
 
-/**
- * DETALLE de un producto o curso. Recibe el id como ARGUMENTO de la ruta "detalle/{productoId}".
- */
 @Composable
 fun DetalleProductoScreen(
     productoId: Int,
@@ -65,7 +62,7 @@ fun DetalleProductoScreen(
     val producto = catalogoViewModel.buscarPorId(productoId)
     val itemsCarrito by carritoViewModel.items.collectAsState()
 
-    // Mensaje animado de confirmación (null = oculto)
+    // mensaje animado de confirmación (null = oculto)
     var mensaje by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(mensaje) {
         if (mensaje != null) {
@@ -84,7 +81,6 @@ fun DetalleProductoScreen(
             )
         }
     ) { innerPadding ->
-        // Control de errores: si el id no existe mostramos un aviso en vez de cerrar la app
         if (producto == null) {
             Box(
                 modifier = Modifier
@@ -115,7 +111,6 @@ fun DetalleProductoScreen(
     }
 }
 
-/** Contenido del detalle (separado para que la pantalla principal quede más corta). */
 @Composable
 private fun DetalleContenido(
     producto: Producto,
@@ -125,7 +120,7 @@ private fun DetalleContenido(
     onCotizar: () -> Unit
 ) {
     val esCurso = producto is Curso
-    val haptic = LocalHapticFeedback.current   // vibración corta al agregar
+    val haptic = LocalHapticFeedback.current
 
     Column(
         modifier = modifier
@@ -152,10 +147,8 @@ private fun DetalleContenido(
 
         HorizontalDivider()
 
-        // Ficha técnica
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                // "when" sobre una sealed class: el compilador exige cubrir TODAS las subclases
                 when (producto) {
                     is ProductoFisico -> {
                         FilaDato("Stock", producto.stock.toString())
@@ -192,7 +185,7 @@ private fun DetalleContenido(
         ) {
             Icon(if (esCurso) Icons.Filled.School else Icons.Filled.AddShoppingCart, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
-            Text(producto.etiquetaAccion())   // polimorfismo: "Inscribirme" o "Agregar al carrito"
+            Text(producto.etiquetaAccion())
         }
 
         if (!esCurso) {

@@ -57,21 +57,16 @@ import com.example.appmuseo.utils.formatearPrecio
 import com.example.appmuseo.viewmodel.MainViewModel
 import com.example.appmuseo.viewmodel.SolicitudViewModel
 
-/**
- * MIS SOLICITUDES: lista guardada en ROOM con su estado (pendiente / completada) y fecha.
- * La lista se actualiza sola porque el DAO devuelve un Flow.
- */
 @Composable
 fun MisSolicitudesScreen(solicitudViewModel: SolicitudViewModel, mainViewModel: MainViewModel) {
     val solicitudes by solicitudViewModel.solicitudes.collectAsState()
     val mostrarNotificacion by solicitudViewModel.mostrarNotificacion.collectAsState()
     val textoNotificacion by solicitudViewModel.textoNotificacion.collectAsState()
 
-    // Filtro local de la pantalla: null = todas
+    // filtro local de la pantalla
     var filtroEstado by rememberSaveable { mutableStateOf<String?>(null) }
     val visibles = if (filtroEstado == null) solicitudes else solicitudes.filter { it.estado == filtroEstado }
 
-    // Solicitud que el usuario quiere eliminar (null = no se muestra el diálogo)
     var solicitudAEliminar by remember { mutableStateOf<SolicitudEntity?>(null) }
     solicitudAEliminar?.let { solicitud ->
         DialogoConfirmacion(
@@ -97,7 +92,6 @@ fun MisSolicitudesScreen(solicitudViewModel: SolicitudViewModel, mainViewModel: 
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            // Aviso "push" simulado (aparece al crear o completar una solicitud)
             NotificacionSimulada(visible = mostrarNotificacion, mensaje = textoNotificacion)
 
             Row(
@@ -141,7 +135,7 @@ fun MisSolicitudesScreen(solicitudViewModel: SolicitudViewModel, mainViewModel: 
                             solicitud = solicitud,
                             modifier = Modifier.animateItem(),
                             onCompletar = { solicitudViewModel.marcarCompletada(solicitud) },
-                            onEliminar = { solicitudAEliminar = solicitud }   // primero se pide confirmación
+                            onEliminar = { solicitudAEliminar = solicitud }
                         )
                     }
                 }
@@ -158,7 +152,6 @@ private fun TarjetaSolicitud(
     modifier: Modifier = Modifier
 ) {
     val completada = solicitud.estado == EstadoSolicitud.COMPLETADA
-    // El color del estado cambia con una animación suave (Guía 12: animateColorAsState)
     val colorEstado by animateColorAsState(
         targetValue = if (completada) VerdeCompletado else AmbarPendiente,
         animationSpec = tween(durationMillis = 500),
@@ -208,7 +201,6 @@ private fun TarjetaSolicitud(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (!completada) {
-                    // Simula que el museo procesó la solicitud (en la Unidad 3 lo hará el backend)
                     OutlinedButton(onClick = onCompletar) { Text("Marcar como completada") }
                 }
                 Spacer(modifier = Modifier.weight(1f))

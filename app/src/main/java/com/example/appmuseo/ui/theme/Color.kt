@@ -2,9 +2,8 @@ package com.example.appmuseo.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Paleta inspirada en un museo: azul noche, terracota y dorado sobre fondo marfil.
+// Paleta inspirada en un museo
 
-// ── Tema claro ──
 val AzulNoche = Color(0xFF1B2A41)
 val AzulNocheContenedor = Color(0xFFD6E2F5)
 val AzulNocheOscuro = Color(0xFF0D1626)
@@ -19,7 +18,6 @@ val TextoPrincipal = Color(0xFF1C1B1A)
 val PiedraClara = Color(0xFFE9E4DA)
 val TextoSecundario = Color(0xFF4A463F)
 
-// ── Tema oscuro ──
 val AzulClaro = Color(0xFFB4C8E8)
 val AzulProfundo = Color(0xFF33445E)
 val TerracotaClara = Color(0xFFFFB4A1)
@@ -31,6 +29,5 @@ val TextoClaro = Color(0xFFE4E2DF)
 val PiedraOscura = Color(0xFF3A3833)
 val TextoClaroSecundario = Color(0xFFCCC6BB)
 
-// Colores de estado (se usan en las solicitudes)
 val VerdeCompletado = Color(0xFF2E7D32)
 val AmbarPendiente = Color(0xFFB26A00)

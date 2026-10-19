@@ -46,7 +46,6 @@ private val opcionesMenu = listOf(
     OpcionMenu(Screen.Perfil, "Mi perfil", Icons.Filled.Person)
 )
 
-/** Contenido del menú lateral (NavigationDrawer, Guía 10). */
 @Composable
 fun MenuLateral(
     nombreUsuario: String,

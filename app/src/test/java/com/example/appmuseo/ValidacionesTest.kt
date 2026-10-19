@@ -12,11 +12,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * PRUEBAS UNITARIAS de las reglas de validación.
- * Estructura de cada prueba (patrón AAA):
- *   Arrange = preparar datos · Act = ejecutar · Assert = comprobar el resultado
- */
 class ValidacionesTest {
 
     @Test
@@ -95,10 +90,10 @@ class ValidacionesTest {
     fun peso_aceptaComaYRechazaFueraDeRango() {
         assertNull(Validaciones.validarPeso("1,5"))
         assertNull(Validaciones.validarPeso("2.25"))
-        assertNotNull(Validaciones.validarPeso(""))       // vacío
-        assertNotNull(Validaciones.validarPeso("abc"))    // no numérico
-        assertNotNull(Validaciones.validarPeso("0"))      // debe ser > 0
-        assertNotNull(Validaciones.validarPeso("31"))     // máximo 30 kg
+        assertNotNull(Validaciones.validarPeso(""))
+        assertNotNull(Validaciones.validarPeso("abc"))   // no numérico
+        assertNotNull(Validaciones.validarPeso("0"))
+        assertNotNull(Validaciones.validarPeso("31"))
     }
 
     @Test

@@ -56,10 +56,6 @@ import com.example.appmuseo.viewmodel.LoginViewModel
 import com.example.appmuseo.viewmodel.MainViewModel
 import com.example.appmuseo.viewmodel.RegistroViewModel
 
-/**
- * CREAR CUENTA: formulario completo con validación por campo (Guía 11).
- * La cuenta se guarda en Room y luego se puede iniciar sesión con ella.
- */
 @Composable
 fun RegistroScreen(
     registroViewModel: RegistroViewModel,
@@ -70,7 +66,7 @@ fun RegistroScreen(
     var mostrarClave by rememberSaveable { mutableStateOf(false) }
     val registrando = estado.resultado is ResultadoRegistro.Registrando
 
-    // Si la cuenta se creó: volvemos al login con el correo ya escrito
+    // si la cuenta se creo
     LaunchedEffect(estado.resultado) {
         val resultado = estado.resultado
         if (resultado is ResultadoRegistro.Exito) {
@@ -142,7 +138,6 @@ fun RegistroScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done)
             )
 
-            // Perfil de usuario (los tres perfiles externos del caso)
             Text("¿Cuál es tu perfil?", style = MaterialTheme.typography.titleMedium)
             TipoUsuario.entries.forEach { tipo ->
                 Row(
@@ -183,7 +178,6 @@ fun RegistroScreen(
                 Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
             }
 
-            // Error que devuelve el repositorio (ej: correo ya registrado)
             val resultado = estado.resultado
             AnimatedVisibility(visible = resultado is ResultadoRegistro.Error) {
                 Text(

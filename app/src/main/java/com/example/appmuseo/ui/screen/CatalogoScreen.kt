@@ -45,10 +45,6 @@ import com.example.appmuseo.viewmodel.CatalogoViewModel
 import com.example.appmuseo.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 
-/**
- * CATÁLOGO UNIFICADO: búsqueda + filtros por categoría (FilterChip) + grilla adaptable.
- * En un teléfono se ve en 1 columna; en tablet o en horizontal, en 2 o 3 (Guía 9).
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CatalogoScreen(
@@ -62,7 +58,7 @@ fun CatalogoScreen(
     val scope = rememberCoroutineScope()
     val columnas = columnasSegunPantalla()
 
-    // null representa la opción "Todos"
+    // null representa la opcion "todos"
     val opcionesFiltro: List<Categoria?> = listOf<Categoria?>(null) + Categoria.entries
 
     Scaffold(
@@ -81,7 +77,6 @@ fun CatalogoScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            // Buscador
             OutlinedTextField(
                 value = estado.busqueda,
                 onValueChange = catalogoViewModel::onBusquedaChange,
@@ -101,7 +96,6 @@ fun CatalogoScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             )
 
-            // Filtros por categoría (fila con scroll horizontal)
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -126,7 +120,6 @@ fun CatalogoScreen(
                         .padding(32.dp)
                 )
             } else {
-                // LazyVerticalGrid: solo dibuja lo que se ve en pantalla (eficiente con listas largas)
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(columnas),
                     contentPadding = PaddingValues(16.dp),
@@ -137,7 +130,7 @@ fun CatalogoScreen(
                     items(productos, key = { it.id }) { producto ->
                         TarjetaProducto(
                             producto = producto,
-                            // animateItem: al filtrar, las tarjetas se reacomodan con animación
+                            // animateitem
                             modifier = Modifier.animateItem(),
                             onVerDetalle = { mainViewModel.navigateTo(Screen.Detalle(producto.id)) },
                             onAgregar = {

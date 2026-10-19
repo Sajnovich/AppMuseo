@@ -42,7 +42,6 @@ import com.example.appmuseo.model.ProductoFisico
 import com.example.appmuseo.ui.theme.MuseoTheme
 import com.example.appmuseo.utils.formatearPrecio
 
-/** Ícono que representa cada categoría (when = equivalente moderno del switch). */
 fun iconoDeCategoria(categoria: Categoria): ImageVector = when (categoria) {
     Categoria.MERCH -> Icons.Filled.LocalMall
     Categoria.CONSERVACION -> Icons.Filled.Inventory2
@@ -50,7 +49,6 @@ fun iconoDeCategoria(categoria: Categoria): ImageVector = when (categoria) {
     Categoria.CURSO -> Icons.Filled.School
 }
 
-/** Cuadro de color con el ícono de la categoría (reemplaza la foto del producto en este MVP). */
 @Composable
 fun IconoCategoria(categoria: Categoria, modifier: Modifier = Modifier, tamano: Dp = 56.dp) {
     val colorFondo = when (categoria) {
@@ -68,18 +66,13 @@ fun IconoCategoria(categoria: Categoria, modifier: Modifier = Modifier, tamano: 
     ) {
         Icon(
             imageVector = iconoDeCategoria(categoria),
-            contentDescription = null,   // decorativo: la categoría ya aparece escrita
+            contentDescription = null,
             modifier = Modifier.size(tamano * 0.5f),
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
 
-/**
- * TARJETA DE PRODUCTO reutilizable: se usa en el catálogo y en los destacados del inicio.
- * Recibe "eventos" (onVerDetalle, onAgregar) en vez de un ViewModel: así el componente
- * no depende de ninguna pantalla y se puede previsualizar fácilmente.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TarjetaProducto(
@@ -88,7 +81,7 @@ fun TarjetaProducto(
     onAgregar: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Vibración corta del teléfono al agregar: retroalimentación física de la acción
+    // Vibracion corta del telefono al agregar
     val haptic = LocalHapticFeedback.current
 
     Card(
@@ -125,7 +118,7 @@ fun TarjetaProducto(
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = producto.disponibilidad(),   // polimorfismo: cada subclase arma su texto
+                    text = producto.disponibilidad(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
