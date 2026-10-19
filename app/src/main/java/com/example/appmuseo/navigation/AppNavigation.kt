@@ -14,6 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.appmuseo.ui.screen.BienvenidaScreen
 import com.example.appmuseo.ui.screen.CargaScreen
 import com.example.appmuseo.ui.screen.CarritoScreen
 import com.example.appmuseo.ui.screen.CatalogoScreen
@@ -106,6 +107,9 @@ fun AppNavigation() {
     ) {
         composable(route = Screen.Carga.route) {
             CargaScreen(sesionViewModel, mainViewModel)
+        }
+        composable(route = Screen.Bienvenida.route) {
+            BienvenidaScreen(mainViewModel)
         }
         composable(route = Screen.Login.route) {
             LoginScreen(loginViewModel, sesionViewModel, mainViewModel)

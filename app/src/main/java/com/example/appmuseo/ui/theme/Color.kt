@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 // Paleta inspirada en un museo
 
-val AzulNoche = Color(0xFF1B2A41)
+val AzulNoche = Color(0xFF15294A)
 val AzulNocheContenedor = Color(0xFFD6E2F5)
 val AzulNocheOscuro = Color(0xFF0D1626)
 val Terracota = Color(0xFFA6472F)
@@ -31,3 +31,9 @@ val TextoClaroSecundario = Color(0xFFCCC6BB)
 
 val VerdeCompletado = Color(0xFF2E7D32)
 val AmbarPendiente = Color(0xFFB26A00)
+
+// dorado de los botones principales (como en los mockups)
+val DoradoBoton = Color(0xFFAD8B4E)
+val DoradoBotonContenedor = Color(0xFFF3E6CC)
+val DoradoBotonOscuro = Color(0xFF3A2A06)
+val DoradoBotonClaro = Color(0xFFE2C48B)

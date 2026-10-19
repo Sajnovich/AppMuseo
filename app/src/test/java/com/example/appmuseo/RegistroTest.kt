@@ -121,4 +121,13 @@ class RegistroTest {
         assertTrue(viewModel.validarFormulario())
         assertFalse(viewModel.estado.value.errores.hayErrores())
     }
+
+    @Test
+    fun registro_vacio_listaTodosLosCamposObligatorios() {
+        val errores = Validaciones.validarRegistro(RegistroUiState())
+
+        val faltantes = errores.camposConError()
+
+        assertTrue(faltantes.containsAll(listOf("Nombre", "Correo", "Contraseña", "Términos y condiciones")))
+    }
 }
