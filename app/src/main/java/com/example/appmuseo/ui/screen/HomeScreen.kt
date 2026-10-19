@@ -34,6 +34,8 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -45,6 +47,7 @@ import com.example.appmuseo.model.Categoria
 import com.example.appmuseo.navigation.Screen
 import com.example.appmuseo.ui.components.BarraInferior
 import com.example.appmuseo.ui.components.BarraSuperior
+import com.example.appmuseo.ui.components.DialogoCerrarSesion
 import com.example.appmuseo.ui.components.MenuLateral
 import com.example.appmuseo.ui.components.TarjetaProducto
 import com.example.appmuseo.ui.utils.obtenerWindowSizeClass
@@ -75,6 +78,19 @@ fun HomeScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    var mostrarDialogoSalir by remember { mutableStateOf(false) }
+    if (mostrarDialogoSalir) {
+        DialogoCerrarSesion(
+            onConfirmar = {
+                mostrarDialogoSalir = false
+                sesionViewModel.cerrarSesion()
+                carritoViewModel.vaciar()
+                mainViewModel.navigateTo(Screen.Login, popUpToRoute = Screen.Home, inclusive = true)
+            },
+            onCancelar = { mostrarDialogoSalir = false }
+        )
+    }
 
     val columnas = when (obtenerWindowSizeClass().widthSizeClass) {
         WindowWidthSizeClass.Compact -> 2
@@ -113,9 +129,7 @@ fun HomeScreen(
                 },
                 onCerrarSesion = {
                     scope.launch { drawerState.close() }
-                    sesionViewModel.cerrarSesion()
-                    carritoViewModel.vaciar()
-                    mainViewModel.navigateTo(Screen.Login, popUpToRoute = Screen.Home, inclusive = true)
+                    mostrarDialogoSalir = true   // primero se pide confirmación
                 }
             )
         }

@@ -1,5 +1,9 @@
 package com.example.appmuseo.ui.screen
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,6 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -32,6 +39,8 @@ import com.example.appmuseo.viewmodel.SesionViewModel
 @Composable
 fun CargaScreen(sesionViewModel: SesionViewModel, mainViewModel: MainViewModel) {
     val sesionActiva by sesionViewModel.sesionActiva.collectAsState()
+    var mostrarLogo by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { mostrarLogo = true }   // al entrar, se activa la animación
 
     // LaunchedEffect se ejecuta cada vez que cambia "sesionActiva"
     LaunchedEffect(sesionActiva) {
@@ -50,11 +59,17 @@ fun CargaScreen(sesionViewModel: SesionViewModel, mainViewModel: MainViewModel) 
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.logo_museo),
-                contentDescription = "Logo Museo de los Museos",
-                modifier = Modifier.size(140.dp)
-            )
+            // El logo aparece agrandándose y con fundido (animación de entrada)
+            AnimatedVisibility(
+                visible = mostrarLogo,
+                enter = fadeIn(tween(700)) + scaleIn(initialScale = 0.6f, animationSpec = tween(700))
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.logo_museo),
+                    contentDescription = "Logo Museo de los Museos",
+                    modifier = Modifier.size(140.dp)
+                )
+            }
             Spacer(modifier = Modifier.height(16.dp))
             Text("Museo de los Museos", style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(24.dp))

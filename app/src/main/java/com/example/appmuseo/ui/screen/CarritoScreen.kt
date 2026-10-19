@@ -1,5 +1,11 @@
 package com.example.appmuseo.ui.screen
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -61,7 +67,10 @@ fun CarritoScreen(carritoViewModel: CarritoViewModel, mainViewModel: MainViewMod
                     Column(modifier = Modifier.navigationBarsPadding().padding(16.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("Subtotal", style = MaterialTheme.typography.titleMedium)
-                            Text(formatearPrecio(subtotal), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            // El total cambia con un fundido suave cada vez que se modifica el carrito
+                            AnimatedContent(targetState = subtotal, label = "subtotal") { total ->
+                                Text(formatearPrecio(total), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            }
                         }
                         if (carritoViewModel.requiereEnvio()) {
                             Text(
@@ -119,6 +128,7 @@ fun CarritoScreen(carritoViewModel: CarritoViewModel, mainViewModel: MainViewMod
                 items(items, key = { it.producto.id }) { item ->
                     FilaCarrito(
                         item = item,
+                        modifier = Modifier.animateItem(),   // al eliminar, la fila desaparece con animación
                         onSumar = { carritoViewModel.agregar(item.producto) },
                         onRestar = { carritoViewModel.disminuir(item.producto.id) },
                         onEliminar = { carritoViewModel.eliminar(item.producto.id) }
@@ -134,11 +144,12 @@ private fun FilaCarrito(
     item: ItemCarrito,
     onSumar: () -> Unit,
     onRestar: () -> Unit,
-    onEliminar: () -> Unit
+    onEliminar: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val esCurso = item.producto is Curso
 
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(modifier = modifier.fillMaxWidth()) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             IconoCategoria(item.producto.categoria, tamano = 48.dp)
             Spacer(modifier = Modifier.width(12.dp))
@@ -149,7 +160,22 @@ private fun FilaCarrito(
                     // Controles de cantidad (los cursos son siempre 1 inscripción)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = onRestar) { Icon(Icons.Filled.Remove, contentDescription = "Quitar una unidad") }
-                        Text("${item.cantidad}", style = MaterialTheme.typography.titleMedium)
+                        // AnimatedContent: el número "rueda" hacia arriba al sumar y hacia abajo al restar
+                        AnimatedContent(
+                            targetState = item.cantidad,
+                            transitionSpec = {
+                                if (targetState > initialState) {
+                                    (slideInVertically { altura -> altura } + fadeIn()) togetherWith
+                                            (slideOutVertically { altura -> -altura } + fadeOut())
+                                } else {
+                                    (slideInVertically { altura -> -altura } + fadeIn()) togetherWith
+                                            (slideOutVertically { altura -> altura } + fadeOut())
+                                }
+                            },
+                            label = "cantidad"
+                        ) { cantidad ->
+                            Text("$cantidad", style = MaterialTheme.typography.titleMedium)
+                        }
                         IconButton(onClick = onSumar) { Icon(Icons.Filled.Add, contentDescription = "Agregar una unidad") }
                     }
                 } else {

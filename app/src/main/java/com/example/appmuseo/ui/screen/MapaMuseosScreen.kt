@@ -145,6 +145,7 @@ fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel)
             items(estado.museosVisibles, key = { it.id }) { museo ->
                 FilaMuseo(
                     museo = museo,
+                    modifier = Modifier.animateItem(),   // la lista se reacomoda al filtrar por país
                     seleccionado = estado.museoSeleccionado?.id == museo.id,
                     onClick = { mapaViewModel.seleccionarMuseo(museo) }
                 )
@@ -257,9 +258,9 @@ private fun DetalleMuseo(museo: Museo, onAbrirMapa: () -> Unit, modifier: Modifi
 }
 
 @Composable
-private fun FilaMuseo(museo: Museo, seleccionado: Boolean, onClick: () -> Unit) {
+private fun FilaMuseo(museo: Museo, seleccionado: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .background(

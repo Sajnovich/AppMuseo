@@ -1,5 +1,9 @@
 package com.example.appmuseo.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -37,6 +41,9 @@ import com.example.appmuseo.viewmodel.SolicitudViewModel
 import com.example.appmuseo.data.local.AppDatabase
 import com.example.appmuseo.repository.AuthRepository
 import kotlinx.coroutines.flow.collectLatest
+
+/** Duración de las transiciones entre pantallas, en milisegundos. */
+private const val DURACION_TRANSICION = 300
 
 /**
  * NAVEGACIÓN DE LA APP (Guías 10 y 11).
@@ -89,7 +96,25 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Carga.route
+        startDestination = Screen.Carga.route,
+        // TRANSICIONES entre pantallas (Guía 12): la nueva entra desde la derecha mientras la
+        // anterior sale hacia la izquierda; al volver ("pop") la dirección se invierte.
+        enterTransition = {
+            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(DURACION_TRANSICION)) +
+                    fadeIn(tween(DURACION_TRANSICION))
+        },
+        exitTransition = {
+            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(DURACION_TRANSICION)) +
+                    fadeOut(tween(DURACION_TRANSICION))
+        },
+        popEnterTransition = {
+            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(DURACION_TRANSICION)) +
+                    fadeIn(tween(DURACION_TRANSICION))
+        },
+        popExitTransition = {
+            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(DURACION_TRANSICION)) +
+                    fadeOut(tween(DURACION_TRANSICION))
+        }
     ) {
         composable(route = Screen.Carga.route) {
             CargaScreen(sesionViewModel, mainViewModel)
