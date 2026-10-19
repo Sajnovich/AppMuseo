@@ -55,6 +55,11 @@ class LoginViewModel(
         }
     }
 
+    /** Después de crear una cuenta: deja el correo escrito y muestra un aviso positivo. */
+    fun prepararTrasRegistro(correo: String) {
+        _estado.value = LoginUiState(correo = correo, aviso = "¡Cuenta creada! Ingresa tu contraseña para entrar.")
+    }
+
     /** Se llama después de entrar, para que el formulario quede limpio al cerrar sesión. */
     fun limpiarFormulario() {
         _estado.value = LoginUiState()

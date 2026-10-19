@@ -7,12 +7,14 @@ import androidx.room.RoomDatabase
 
 /**
  * ROOM - Base de datos: une las entidades (tablas) con sus DAOs.
- * Si en el futuro cambias SolicitudEntity, debes subir "version".
+ * Herencia: AppDatabase "es una" RoomDatabase y Room genera la clase hija real (KSP).
+ * Versión 2: se agregó la tabla "usuarios". Cada cambio de tablas debe subir "version".
  */
-@Database(entities = [SolicitudEntity::class], version = 1, exportSchema = false)
+@Database(entities = [SolicitudEntity::class, UsuarioEntity::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun solicitudDao(): SolicitudDao
+    abstract fun usuarioDao(): UsuarioDao
 
     companion object {
         // Patrón Singleton: una sola instancia de la BD para toda la app
@@ -27,7 +29,11 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "museo_db"            // nombre del archivo SQLite en el teléfono
-                ).build().also { instancia = it }
+                )
+                    // Etapa de desarrollo (MVP): si cambia la versión, se recrea la BD desde cero.
+                    // Con datos reales se escribiría una Migration para no perder información.
+                    .fallbackToDestructiveMigration()
+                    .build().also { instancia = it }
             }
         }
     }

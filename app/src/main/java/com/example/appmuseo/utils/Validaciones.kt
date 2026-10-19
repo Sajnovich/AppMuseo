@@ -2,6 +2,8 @@ package com.example.appmuseo.utils
 
 import com.example.appmuseo.model.LoginErrores
 import com.example.appmuseo.model.LoginUiState
+import com.example.appmuseo.model.RegistroErrores
+import com.example.appmuseo.model.RegistroUiState
 import com.example.appmuseo.model.SolicitudErrores
 import com.example.appmuseo.model.SolicitudUiState
 
@@ -36,6 +38,20 @@ object Validaciones {
         else -> null
     }
 
+    /** Para crear cuentas se exige además mezclar letras y números. */
+    fun validarClaveSegura(clave: String): String? = when {
+        clave.isBlank() -> "La contraseña es obligatoria"
+        clave.length < LARGO_MINIMO_CLAVE -> "Debe tener al menos $LARGO_MINIMO_CLAVE caracteres"
+        !clave.any { it.isLetter() } || !clave.any { it.isDigit() } -> "Debe combinar letras y números"
+        else -> null
+    }
+
+    fun validarConfirmacion(clave: String, confirmacion: String): String? = when {
+        confirmacion.isBlank() -> "Repite la contraseña"
+        confirmacion != clave -> "Las contraseñas no coinciden"
+        else -> null
+    }
+
     fun validarNombre(nombre: String): String? = when {
         nombre.isBlank() -> "El nombre es obligatorio"
         nombre.trim().length < 3 -> "Debe tener al menos 3 letras"
@@ -46,6 +62,16 @@ object Validaciones {
     fun validarLogin(estado: LoginUiState): LoginErrores = LoginErrores(
         correo = validarCorreo(estado.correo),
         clave = validarClave(estado.clave)
+    )
+
+    /** Valida el formulario de registro completo. */
+    fun validarRegistro(estado: RegistroUiState): RegistroErrores = RegistroErrores(
+        nombre = validarNombre(estado.nombre),
+        correo = validarCorreo(estado.correo),
+        clave = validarClaveSegura(estado.clave),
+        confirmarClave = validarConfirmacion(estado.clave, estado.confirmarClave),
+        tipoUsuario = if (estado.tipoUsuario == null) "Selecciona tu perfil" else null,
+        terminos = if (!estado.aceptaTerminos) "Debes aceptar los términos y condiciones" else null
     )
 
     /**
