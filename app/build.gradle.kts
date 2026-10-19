@@ -60,6 +60,8 @@ dependencies {
 
     // --- Íconos adicionales de Material (Map, Museum, School, QrCodeScanner, etc.) ---
     implementation("androidx.compose.material:material-icons-extended")
+    // Mapa real de OpenStreetMap (gratis, sin API key), igual que el ejemplo 103 del curso
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
     // Lector de códigos QR y de barras de Google (ML Kit / Google Play services), igual que el ejemplo 105 del curso
     implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
 

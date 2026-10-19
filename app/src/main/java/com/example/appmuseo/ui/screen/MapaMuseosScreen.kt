@@ -9,6 +9,8 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.height
+import com.example.appmuseo.ui.components.MapaMuseosOsm
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -70,8 +72,7 @@ import com.example.appmuseo.viewmodel.MapaViewModel
 
 /**
  * MAPA DE MUSEOS VIRTUALES DE IBEROAMÉRICA.
- * Es un mapa SIMULADO: un rectángulo donde cada museo se ubica según su latitud/longitud
- * (ver ProyeccionMapa). En la Unidad 3 se puede reemplazar por Google Maps con el backend.
+ * Mapa REAL de OpenStreetMap con osmdroid (gratis y sin API key), un marcador por museo.
  * Además, el botón "Abrir en mapas" usa un Intent para abrir la app de mapas del teléfono,
  * y "Museo más cercano a mí" usa la UBICACIÓN del teléfono (con permiso en tiempo de ejecución).
  */
@@ -124,14 +125,19 @@ fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel)
                 )
             }
 
-            // 3) Mapa simulado
+            // 3) Mapa REAL de OpenStreetMap (osmdroid, como el ejemplo 103 del curso)
             item {
-                MapaSimulado(
-                    museos = estado.museosVisibles,
-                    seleccionado = estado.museoSeleccionado,
-                    onSeleccionar = { mapaViewModel.seleccionarMuseo(it) },
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+                Card(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()) {
+                    MapaMuseosOsm(
+                        museos = estado.museosVisibles,
+                        seleccionado = estado.museoSeleccionado,
+                        onSeleccionar = { mapaViewModel.seleccionarMuseo(it) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(320.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                    )
+                }
             }
 
             // 4) Detalle del museo seleccionado (aparece con animación)

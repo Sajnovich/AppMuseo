@@ -68,7 +68,7 @@ app/src/test/…               → pruebas unitarias
 | Solicitudes de compra o inscripción | `CarritoScreen` → `SolicitudScreen` (formulario validado) |
 | Registros con estado pendiente / completado y fecha | Room: `SolicitudEntity`, `MisSolicitudesScreen` |
 | Cotizador de envío nacional e internacional | `CotizadorEnvio` (reglas), `CotizadorScreen` |
-| Mapa de museos virtuales de Iberoamérica | `MapaMuseosScreen` (mapa simulado, "museo más cercano a mí" con la ubicación del teléfono e Intent a la app de mapas) |
+| Mapa de museos virtuales de Iberoamérica | `MapaMuseosScreen` (mapa real de OpenStreetMap con osmdroid, sin API key, "museo más cercano a mí" con la ubicación del teléfono e Intent a la app de mapas) |
 | Lectura de códigos con cámara | `EscanerScreen`: lector real de QR y código de barras (Google Code Scanner), con lectura simulada como respaldo en el emulador |
 | Persistencia local de estados esenciales | DataStore (sesión) + Room (solicitudes) |
 | Notificaciones push simuladas | Notificación local del sistema (`Notificaciones`) + aviso animado en la app (`NotificacionSimulada`); se activan/desactivan en Perfil |
