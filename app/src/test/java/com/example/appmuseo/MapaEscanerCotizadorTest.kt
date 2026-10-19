@@ -61,19 +61,32 @@ class MapaEscanerCotizadorTest {
     fun escaner_codigoExistente_encuentraProducto() {
         val viewModel = EscanerViewModel()
 
-        viewModel.buscarCodigo("mdm-005")
+        viewModel.onCodigoChange("mdm-005")
+        viewModel.buscarCodigo()
 
         assertEquals(5, viewModel.productoDetectado.value?.id)
+        assertNull(viewModel.errorCodigo.value)
     }
 
     @Test
     fun escaner_codigoInexistente_noEncuentraNada() {
         val viewModel = EscanerViewModel()
 
-        viewModel.buscarCodigo("XYZ-999")
+        viewModel.onCodigoChange("MDM-999")
+        viewModel.buscarCodigo()
 
         assertNull(viewModel.productoDetectado.value)
-        assertNotNull(viewModel.mensaje.value)
+        assertNotNull(viewModel.errorCodigo.value)
+    }
+
+    @Test
+    fun escaner_codigoConFormatoInvalido_muestraErrorDelCampo() {
+        val viewModel = EscanerViewModel()
+
+        viewModel.onCodigoChange("XYZ")
+        viewModel.buscarCodigo()
+
+        assertEquals("Formato esperado: MDM-001", viewModel.errorCodigo.value)
     }
 
     @Test
@@ -95,7 +108,8 @@ class MapaEscanerCotizadorTest {
 
         viewModel.calcular()
 
-        assertNotNull(viewModel.estado.value.error)
+        assertNotNull(viewModel.estado.value.errores.zona)
+        assertNull(viewModel.estado.value.errores.peso)   // el peso sí estaba bien
         assertNull(viewModel.estado.value.resultado)
     }
 
@@ -119,7 +133,7 @@ class MapaEscanerCotizadorTest {
 
         viewModel.calcular()
 
-        assertNotNull(viewModel.estado.value.error)
+        assertNotNull(viewModel.estado.value.errores.peso)
     }
 
     // ── Navegación ──

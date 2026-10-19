@@ -90,4 +90,22 @@ class ValidacionesTest {
 
         assertNotNull(errores.terminos)
     }
+
+    @Test
+    fun peso_aceptaComaYRechazaFueraDeRango() {
+        assertNull(Validaciones.validarPeso("1,5"))
+        assertNull(Validaciones.validarPeso("2.25"))
+        assertNotNull(Validaciones.validarPeso(""))       // vacío
+        assertNotNull(Validaciones.validarPeso("abc"))    // no numérico
+        assertNotNull(Validaciones.validarPeso("0"))      // debe ser > 0
+        assertNotNull(Validaciones.validarPeso("31"))     // máximo 30 kg
+    }
+
+    @Test
+    fun codigoProducto_respetaElFormatoMDM() {
+        assertNull(Validaciones.validarCodigoProducto("MDM-001"))
+        assertNull(Validaciones.validarCodigoProducto("mdm-012"))
+        assertNotNull(Validaciones.validarCodigoProducto("MDM-1"))
+        assertNotNull(Validaciones.validarCodigoProducto(" "))
+    }
 }

@@ -47,8 +47,16 @@ data class CotizadorUiState(
     val peso: String = "",
     val montoCompra: String = "",
     val resultado: Cotizacion? = null,
-    val error: String? = null
+    val errores: CotizadorErrores = CotizadorErrores()
 )
+
+/** Un error por campo del cotizador (mismo patrón que los demás formularios). */
+data class CotizadorErrores(
+    val zona: String? = null,
+    val peso: String? = null
+) {
+    fun hayErrores(): Boolean = listOfNotNull(zona, peso).isNotEmpty()
+}
 
 /** Estado del mapa de museos. */
 data class MapaUiState(

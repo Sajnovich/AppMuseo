@@ -30,7 +30,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -50,6 +49,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.appmuseo.utils.Validaciones
+import com.example.appmuseo.ui.components.CampoTexto
 import com.example.appmuseo.R
 import com.example.appmuseo.model.ResultadoLogin
 import com.example.appmuseo.navigation.Screen
@@ -108,29 +109,29 @@ fun LoginScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Campo correo: isError + supportingText muestran el error bajo el campo (Guía 11)
-            OutlinedTextField(
-                value = estado.correo,
-                onValueChange = loginViewModel::onCorreoChange,
-                label = { Text("Correo electrónico") },
-                leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null) },
-                isError = estado.errores.correo != null,
-                supportingText = {
-                    estado.errores.correo?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                },
-                singleLine = true,
+            // Campos con el componente estándar CampoTexto: ícono, error por campo y ✓ cuando es válido
+            CampoTexto(
+                valor = estado.correo,
+                onValorChange = loginViewModel::onCorreoChange,
+                etiqueta = "Correo electrónico",
+                icono = Icons.Filled.Email,
+                error = estado.errores.correo,
+                esValido = Validaciones.validarCorreo(estado.correo) == null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
-                enabled = !autenticando,
-                modifier = Modifier.fillMaxWidth()
+                enabled = !autenticando
             )
 
-            // Campo contraseña con botón para mostrar / ocultar
-            OutlinedTextField(
-                value = estado.clave,
-                onValueChange = loginViewModel::onClaveChange,
-                label = { Text("Contraseña") },
-                leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
-                trailingIcon = {
+            CampoTexto(
+                valor = estado.clave,
+                onValorChange = loginViewModel::onClaveChange,
+                etiqueta = "Contraseña",
+                icono = Icons.Filled.Lock,
+                error = estado.errores.clave,
+                visualTransformation = if (mostrarClave) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                // Al presionar "Listo" en el teclado se intenta ingresar, igual que con el botón
+                keyboardActions = KeyboardActions(onDone = { loginViewModel.iniciarSesion() }),
+                accionFinal = {
                     IconButton(onClick = { mostrarClave = !mostrarClave }) {
                         Icon(
                             imageVector = if (mostrarClave) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
@@ -138,17 +139,7 @@ fun LoginScreen(
                         )
                     }
                 },
-                visualTransformation = if (mostrarClave) VisualTransformation.None else PasswordVisualTransformation(),
-                isError = estado.errores.clave != null,
-                supportingText = {
-                    estado.errores.clave?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                // Al presionar "Listo" en el teclado se intenta ingresar, igual que con el botón
-                keyboardActions = KeyboardActions(onDone = { loginViewModel.iniciarSesion() }),
-                enabled = !autenticando,
-                modifier = Modifier.fillMaxWidth()
+                enabled = !autenticando
             )
 
             // Error que "devuelve el servidor" (credenciales incorrectas), con animación
