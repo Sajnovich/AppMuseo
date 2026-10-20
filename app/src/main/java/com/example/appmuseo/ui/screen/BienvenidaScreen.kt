@@ -9,7 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,18 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.filled.School
-import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -40,24 +29,23 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.appmuseo.R
 import com.example.appmuseo.navigation.Screen
-import com.example.appmuseo.ui.theme.AzulNoche
 import com.example.appmuseo.ui.theme.AzulNocheOscuro
 import com.example.appmuseo.ui.theme.DoradoBoton
 import com.example.appmuseo.ui.theme.DoradoBotonClaro
 import com.example.appmuseo.viewmodel.MainViewModel
 
 /**
- * BIENVENIDA (pantalla 1 del mockup): nombre, que ofrece la app y dos caminos:
- * crear cuenta o "ya tengo cuenta"
+ * BIENVENIDA (pantalla 1 del mockup): imagen de una galeria de fondo, el nombre
+ * y dos caminos: crear cuenta o "ya tengo cuenta". Lo demas se ve despues de entrar
  */
 @Composable
 fun BienvenidaScreen(mainViewModel: MainViewModel) {
@@ -65,95 +53,91 @@ fun BienvenidaScreen(mainViewModel: MainViewModel) {
     var visible by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(Unit) { visible = true }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(AzulNoche, AzulNocheOscuro)))
-            .systemBarsPadding()
-    ) {
+    Box(modifier = Modifier.fillMaxSize().background(AzulNocheOscuro)) {
+        Image(
+            painter = painterResource(id = R.drawable.bienvenida_fondo),
+            contentDescription = null,   // es decorativa
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        // degradado oscuro arriba y abajo para que se lean el titulo y los botones
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        0f to AzulNocheOscuro.copy(alpha = 0.85f),
+                        0.35f to Color.Transparent,
+                        0.6f to Color.Transparent,
+                        1f to AzulNocheOscuro
+                    )
+                )
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .systemBarsPadding()
                 .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
-            Image(
-                painter = painterResource(id = R.drawable.logo_museo),
-                contentDescription = "Logo Museo de los Museos",
-                modifier = Modifier.size(110.dp)
-            )
-            Text(
-                "Museo de los Museos",
-                style = MaterialTheme.typography.headlineLarge,
-                color = Color.White,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                "Conecta, aprende y explora el patrimonio de Iberoamérica",
-                style = MaterialTheme.typography.bodyLarge,
-                color = DoradoBotonClaro,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // cada servicio entra deslizandose, uno despues del otro
-            val servicios = listOf(
-                Triple(Icons.Filled.Storefront, "Catálogo", "Productos, publicaciones y materiales"),
-                Triple(Icons.Filled.School, "Cursos", "Formación en museología"),
-                Triple(Icons.Filled.Map, "Mapa de museos", "Museos virtuales de Iberoamérica"),
-                Triple(Icons.Filled.QrCodeScanner, "Escáner QR", "Abre la ficha de un museo al instante")
-            )
-            servicios.forEachIndexed { i, (icono, titulo, texto) ->
-                AnimatedVisibility(
-                    visible = visible,
-                    enter = fadeIn(tween(400, delayMillis = 150 * i)) +
-                            slideInVertically(tween(400, delayMillis = 150 * i)) { it }
-                ) {
-                    FilaServicio(icono, titulo, texto)
+            AnimatedVisibility(
+                visible = visible,
+                enter = fadeIn(tween(700)) + slideInVertically(tween(700)) { -it / 3 }
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Image(
+                        painter = painterResource(id = R.drawable.logo_museo),
+                        contentDescription = "Logo Museo de los Museos",
+                        modifier = Modifier.size(84.dp)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        "Museo de los Museos",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        "Conecta, aprende y explora el patrimonio de Iberoamérica",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = DoradoBotonClaro,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = { mainViewModel.navigateTo(Screen.Registro) },
-                colors = ButtonDefaults.buttonColors(containerColor = DoradoBoton, contentColor = Color.White),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
-            ) {
-                Text("Crear cuenta", style = MaterialTheme.typography.titleMedium)
-            }
-            OutlinedButton(
-                onClick = { mainViewModel.navigateTo(Screen.Login) },
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
-            ) {
-                Text("Ya tengo cuenta", style = MaterialTheme.typography.titleMedium)
-            }
-        }
-    }
-}
+            Spacer(modifier = Modifier.weight(1f))
 
-@Composable
-private fun FilaServicio(icono: ImageVector, titulo: String, texto: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(Color.White.copy(alpha = 0.08f))
-            .padding(14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(icono, contentDescription = null, tint = DoradoBotonClaro, modifier = Modifier.size(28.dp))
-        Spacer(modifier = Modifier.width(14.dp))
-        Column {
-            Text(titulo, style = MaterialTheme.typography.titleSmall, color = Color.White)
-            Text(texto, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.75f))
+            // los botones suben un poco despues del titulo
+            AnimatedVisibility(
+                visible = visible,
+                enter = fadeIn(tween(600, delayMillis = 400)) + slideInVertically(tween(600, delayMillis = 400)) { it }
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Button(
+                        onClick = { mainViewModel.navigateTo(Screen.Registro) },
+                        colors = ButtonDefaults.buttonColors(containerColor = DoradoBoton, contentColor = Color.White),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp)
+                    ) {
+                        Text("Crear cuenta", style = MaterialTheme.typography.titleMedium)
+                    }
+                    OutlinedButton(
+                        onClick = { mainViewModel.navigateTo(Screen.Login) },
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp)
+                    ) {
+                        Text("Ya tengo cuenta", style = MaterialTheme.typography.titleMedium)
+                    }
+                }
+            }
         }
     }
 }
