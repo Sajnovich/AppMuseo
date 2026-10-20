@@ -21,6 +21,7 @@ import com.example.appmuseo.ui.screen.CargaScreen
 import com.example.appmuseo.ui.screen.CarritoScreen
 import com.example.appmuseo.ui.screen.CatalogoScreen
 import com.example.appmuseo.ui.screen.CotizadorScreen
+import com.example.appmuseo.ui.screen.DetalleMuseoScreen
 import com.example.appmuseo.ui.screen.DetalleProductoScreen
 import com.example.appmuseo.ui.screen.EscanerScreen
 import com.example.appmuseo.ui.screen.FavoritosScreen
@@ -28,6 +29,7 @@ import com.example.appmuseo.ui.screen.HomeScreen
 import com.example.appmuseo.ui.screen.LoginScreen
 import com.example.appmuseo.ui.screen.MapaMuseosScreen
 import com.example.appmuseo.ui.screen.MisSolicitudesScreen
+import com.example.appmuseo.ui.screen.MuseosScreen
 import com.example.appmuseo.ui.screen.NotificacionesScreen
 import com.example.appmuseo.ui.screen.PerfilScreen
 import com.example.appmuseo.ui.screen.RegistroScreen
@@ -165,6 +167,16 @@ fun AppNavigation() {
         }
         composable(route = Screen.Notificaciones.route) {
             NotificacionesScreen(notificacionesViewModel, mainViewModel)
+        }
+        composable(route = Screen.Museos.route) {
+            MuseosScreen(mapaViewModel, favoritosViewModel, mainViewModel)
+        }
+        composable(
+            route = Screen.RUTA_DETALLE_MUSEO,
+            arguments = listOf(navArgument(Screen.ARG_MUSEO_ID) { type = NavType.IntType })
+        ) { backStackEntry ->
+            val museoId = backStackEntry.arguments?.getInt(Screen.ARG_MUSEO_ID) ?: 0
+            DetalleMuseoScreen(museoId, mapaViewModel, favoritosViewModel, mainViewModel)
         }
         composable(route = Screen.Favoritos.route) {
             FavoritosScreen(favoritosViewModel, catalogoViewModel, mainViewModel)

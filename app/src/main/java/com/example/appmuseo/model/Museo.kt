@@ -9,5 +9,13 @@ data class Museo(
     val descripcion: String,
     val latitud: Double,
     val longitud: Double,
-    val anioLevantamiento: Int   // ANO DEL LEVANTAMIENTO DE INFORMACION
-)
+    val anioLevantamiento: Int,   // ANO DEL LEVANTAMIENTO DE INFORMACION
+    val calificacion: Double = 4.5,
+    val resenas: Int = 0,
+    val detalle: String = ""
+) {
+    // lo que va dentro del QR de cada museo, ej: MUSEO-1
+    val codigoQr: String get() = "MUSEO-$id"
+
+    fun etiquetas(): List<String> = listOf(tipo, pais, "Virtual")
+}

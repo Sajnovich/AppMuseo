@@ -52,11 +52,18 @@ data class CotizadorErrores(
 data class MapaUiState(
     val museos: List<Museo> = emptyList(),
     val paisSeleccionado: String? = null,   // null = todos los países
+    val tipoSeleccionado: String? = null,   // filtro "Proyecto" (arte, historia...)
     val museoSeleccionado: Museo? = null,
     val cercano: MuseoCercano? = null
 ) {
     val museosVisibles: List<Museo>
-        get() = if (paisSeleccionado == null) museos else museos.filter { it.pais == paisSeleccionado }
+        get() = museos.filter {
+            (paisSeleccionado == null || it.pais == paisSeleccionado) &&
+                    (tipoSeleccionado == null || it.tipo == tipoSeleccionado)
+        }
+
+    val tipos: List<String>
+        get() = museos.map { it.tipo }.distinct().sorted()
 
     // map + distinct + sorted
     val paises: List<String>
