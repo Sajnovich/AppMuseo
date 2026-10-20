@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 class MapaViewModel(
-    repositorio: MuseoRepository = MuseoRepository()
+    private val repositorio: MuseoRepository = MuseoRepository()
 ) : ViewModel() {
 
     private val _estado = MutableStateFlow(MapaUiState(museos = repositorio.obtenerMuseos()))
@@ -24,6 +24,20 @@ class MapaViewModel(
             actual.copy(paisSeleccionado = pais, museoSeleccionado = museo)
         }
     }
+
+    fun seleccionarTipo(tipo: String?) {
+        _estado.update { actual ->
+            val museo = actual.museoSeleccionado?.takeIf { tipo == null || it.tipo == tipo }
+            actual.copy(tipoSeleccionado = tipo, museoSeleccionado = museo)
+        }
+    }
+
+    // boton "Todos"
+    fun limpiarFiltros() {
+        _estado.update { it.copy(paisSeleccionado = null, tipoSeleccionado = null) }
+    }
+
+    fun buscarMuseo(id: Int): Museo? = repositorio.buscarPorId(id)
 
     fun seleccionarMuseo(museo: Museo?) {
         _estado.update { it.copy(museoSeleccionado = museo) }
@@ -40,6 +54,7 @@ class MapaViewModel(
         _estado.update {
             it.copy(
                 paisSeleccionado = null,
+                tipoSeleccionado = null,
                 museoSeleccionado = museo,
                 cercano = MuseoCercano(museo, km, aproximada)
             )

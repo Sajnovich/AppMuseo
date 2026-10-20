@@ -134,7 +134,7 @@ fun HomeScreen(
             mainViewModel.navegarPestana(Screen.Catalogo)
         },
         TarjetaExplora("Museos virtuales", "Recorre Iberoamérica", Icons.Filled.AccountBalance, Color(0xFFCFE6E6), false) {
-            mainViewModel.navegarPestana(Screen.Mapa)
+            mainViewModel.navigateTo(Screen.Museos)
         },
         TarjetaExplora("Novedades", "Exposiciones y eventos", Icons.Filled.Campaign, Color(0xFFE8E6E1), false) {
             mainViewModel.navegarPestana(Screen.Notificaciones)

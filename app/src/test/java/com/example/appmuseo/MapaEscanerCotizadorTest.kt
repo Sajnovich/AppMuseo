@@ -142,7 +142,7 @@ class MapaEscanerCotizadorTest {
         viewModel.onCodigoChange("XYZ")
         viewModel.buscarCodigo()
 
-        assertEquals("Formato esperado: MDM-001", viewModel.errorCodigo.value)
+        assertEquals("Formato esperado: MDM-001 (producto) o MUSEO-1 (museo)", viewModel.errorCodigo.value)
     }
 
     @Test

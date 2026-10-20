@@ -72,7 +72,7 @@ fun FavoritosScreen(
 
             if (pestana == 0) {
                 if (museos.isEmpty()) {
-                    SinFavoritos("Aún no guardas museos", "Guárdalos desde el mapa con el corazón.", Icons.Filled.AccountBalance)
+                    SinFavoritos("Aún no guardas museos", "Toca el corazón en la ficha de un museo.", Icons.Filled.AccountBalance)
                 } else {
                     LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         items(museos, key = { it.id }) { museo ->
@@ -80,7 +80,7 @@ fun FavoritosScreen(
                                 titulo = museo.nombre,
                                 detalle = "${museo.ciudad}, ${museo.pais}",
                                 icono = { Icon(Icons.Filled.AccountBalance, contentDescription = null, modifier = Modifier.size(40.dp), tint = MaterialTheme.colorScheme.primary) },
-                                onClick = { mainViewModel.navegarPestana(Screen.Mapa) },
+                                onClick = { mainViewModel.navigateTo(Screen.DetalleMuseo(museo.id)) },
                                 onQuitar = { favoritosViewModel.alternarMuseo(museo.id) }
                             )
                         }

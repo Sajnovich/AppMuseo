@@ -17,6 +17,9 @@ object Validaciones {
     const val LARGO_MINIMO_CLAVE = 6
 
     private val REGEX_CODIGO = Regex("^MDM-\\d{3}$", RegexOption.IGNORE_CASE)
+    private val REGEX_MUSEO = Regex("^MUSEO-\\d{1,3}$", RegexOption.IGNORE_CASE)
+
+    fun esCodigoMuseo(codigo: String): Boolean = REGEX_MUSEO.matches(codigo.trim())
 
     fun esCorreoValido(correo: String): Boolean = REGEX_CORREO.matches(correo.trim())
 
@@ -66,7 +69,7 @@ object Validaciones {
 
     fun validarCodigoProducto(codigo: String): String? = when {
         codigo.isBlank() -> "Escribe un código"
-        !REGEX_CODIGO.matches(codigo.trim()) -> "Formato esperado: MDM-001"
+        !REGEX_CODIGO.matches(codigo.trim()) -> "Formato esperado: MDM-001 (producto) o MUSEO-1 (museo)"
         else -> null
     }
 
