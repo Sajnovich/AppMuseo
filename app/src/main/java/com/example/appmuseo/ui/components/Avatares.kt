@@ -1,5 +1,6 @@
 package com.example.appmuseo.ui.components
 
+import android.net.Uri
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,6 +33,8 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 
 // avatares ficticios: un icono con un color de fondo
 private val avatares: List<Pair<ImageVector, Color>> = listOf(
@@ -87,5 +90,22 @@ fun SelectorAvatar(seleccionado: Int, onSeleccionar: (Int) -> Unit, modifier: Mo
                     }
             )
         }
+    }
+}
+
+// si el usuario saco una foto se muestra esa, si no su avatar
+@Composable
+fun FotoPerfil(fotoUri: Uri?, avatar: Int, tamano: Dp = 56.dp, modifier: Modifier = Modifier) {
+    if (fotoUri != null) {
+        AsyncImage(
+            model = fotoUri,
+            contentDescription = "Foto de perfil",
+            contentScale = ContentScale.Crop,
+            modifier = modifier
+                .size(tamano)
+                .clip(CircleShape)
+        )
+    } else {
+        AvatarCirculo(indice = avatar, tamano = tamano, modifier = modifier)
     }
 }

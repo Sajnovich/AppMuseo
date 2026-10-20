@@ -70,7 +70,8 @@ import androidx.compose.ui.unit.dp
 import com.example.appmuseo.model.Categoria
 import com.example.appmuseo.model.Producto
 import com.example.appmuseo.navigation.Screen
-import com.example.appmuseo.ui.components.AvatarCirculo
+import com.example.appmuseo.ui.components.FotoPerfil
+import android.net.Uri
 import com.example.appmuseo.ui.components.BarraInferior
 import com.example.appmuseo.ui.components.ImagenProducto
 import com.example.appmuseo.ui.theme.AzulNoche
@@ -102,7 +103,8 @@ fun HomeScreen(
     sesionViewModel: SesionViewModel,
     catalogoViewModel: CatalogoViewModel,
     carritoViewModel: CarritoViewModel,
-    notificacionesViewModel: NotificacionesViewModel
+    notificacionesViewModel: NotificacionesViewModel,
+    fotoPerfil: Uri? = null
 ) {
     val usuario by sesionViewModel.usuario.collectAsState()
     val itemsCarrito by carritoViewModel.items.collectAsState()
@@ -155,6 +157,7 @@ fun HomeScreen(
                 nombre = usuario.nombre,
                 rol = usuario.rol.etiqueta,
                 avatar = usuario.avatar,
+                fotoPerfil = fotoPerfil,
                 noLeidas = noLeidas,
                 cantidadCarrito = itemsCarrito.sumOf { it.cantidad },
                 onPerfil = { mainViewModel.navegarPestana(Screen.Perfil) },
@@ -236,6 +239,7 @@ private fun Encabezado(
     nombre: String,
     rol: String,
     avatar: Int,
+    fotoPerfil: Uri?,
     noLeidas: Int,
     cantidadCarrito: Int,
     onPerfil: () -> Unit,
@@ -278,8 +282,9 @@ private fun Encabezado(
                 )
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                AvatarCirculo(
-                    indice = avatar,
+                FotoPerfil(
+                    fotoUri = fotoPerfil,
+                    avatar = avatar,
                     tamano = 52.dp,
                     modifier = Modifier
                         .border(2.dp, DoradoBotonClaro, CircleShape)

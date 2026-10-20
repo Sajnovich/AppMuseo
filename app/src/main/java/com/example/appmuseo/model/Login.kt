@@ -84,3 +84,32 @@ data class RegistroErrores(
         if (terminos != null) "Términos y condiciones" else null
     )
 }
+
+// ---- Editar perfil ----
+data class EditarPerfilUiState(
+    val nombre: String = "",
+    val correo: String = "",
+    val claveActual: String = "",
+    val cambiarClave: Boolean = false,
+    val claveNueva: String = "",
+    val repetirClave: String = "",
+    val guardando: Boolean = false,
+    val guardado: Boolean = false,
+    val errorGeneral: String? = null,
+    val errores: EditarPerfilErrores = EditarPerfilErrores()
+)
+
+data class EditarPerfilErrores(
+    val nombre: String? = null,
+    val correo: String? = null,
+    val claveActual: String? = null,
+    val claveNueva: String? = null,
+    val repetirClave: String? = null
+) {
+    fun hayErrores(): Boolean = listOfNotNull(nombre, correo, claveActual, claveNueva, repetirClave).isNotEmpty()
+}
+
+sealed class ResultadoActualizacion {
+    data class Exito(val perfil: PerfilUsuario) : ResultadoActualizacion()
+    data class Error(val mensaje: String, val campo: String? = null) : ResultadoActualizacion()
+}

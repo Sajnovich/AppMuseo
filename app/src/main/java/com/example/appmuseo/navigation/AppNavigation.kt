@@ -22,6 +22,7 @@ import com.example.appmuseo.ui.screen.CarritoScreen
 import com.example.appmuseo.ui.screen.CatalogoScreen
 import com.example.appmuseo.ui.screen.CotizadorScreen
 import com.example.appmuseo.ui.screen.DetalleMuseoScreen
+import com.example.appmuseo.ui.screen.EditarPerfilScreen
 import com.example.appmuseo.ui.screen.DetalleProductoScreen
 import com.example.appmuseo.ui.screen.EscanerScreen
 import com.example.appmuseo.ui.screen.FavoritosScreen
@@ -82,6 +83,14 @@ fun AppNavigation() {
     val notificaciones by notificacionesViewModel.notificaciones.collectAsState()
     val noLeidas = notificaciones.count { !it.leida }
 
+    // cada vez que cambia la cuenta se carga SU historial y SU foto
+    val usuario by sesionViewModel.usuario.collectAsState()
+    val fotoPerfil by perfilViewModel.imagenUri.collectAsState()
+    LaunchedEffect(usuario.correo) {
+        solicitudViewModel.cargarHistorial(usuario.correo)
+        perfilViewModel.cargarFoto(usuario.correo)
+    }
+
     LaunchedEffect(key1 = Unit) {
         mainViewModel.navigationEvents.collectLatest { event ->
             when (event) {
@@ -133,7 +142,7 @@ fun AppNavigation() {
             RegistroScreen(registroViewModel, loginViewModel, mainViewModel)
         }
         composable(route = Screen.Home.route) {
-            HomeScreen(mainViewModel, sesionViewModel, catalogoViewModel, carritoViewModel, notificacionesViewModel)
+            HomeScreen(mainViewModel, sesionViewModel, catalogoViewModel, carritoViewModel, notificacionesViewModel, fotoPerfil)
         }
         composable(route = Screen.Catalogo.route) {
             CatalogoScreen(catalogoViewModel, carritoViewModel, mainViewModel, noLeidas)
@@ -155,7 +164,7 @@ fun AppNavigation() {
             ResumenCompraScreen(solicitudViewModel, carritoViewModel, notificacionesViewModel, mainViewModel)
         }
         composable(route = Screen.MisSolicitudes.route) {
-            MisSolicitudesScreen(solicitudViewModel, mainViewModel)
+            MisSolicitudesScreen(solicitudViewModel, notificacionesViewModel, mainViewModel)
         }
         composable(route = Screen.Cotizador.route) {
             CotizadorScreen(cotizadorViewModel, mainViewModel)
@@ -167,7 +176,10 @@ fun AppNavigation() {
             EscanerScreen(escanerViewModel, carritoViewModel, mainViewModel)
         }
         composable(route = Screen.Perfil.route) {
-            PerfilScreen(perfilViewModel, sesionViewModel, carritoViewModel, mainViewModel, noLeidas)
+            PerfilScreen(perfilViewModel, sesionViewModel, carritoViewModel, solicitudViewModel, favoritosViewModel, mainViewModel, noLeidas)
+        }
+        composable(route = Screen.EditarPerfil.route) {
+            EditarPerfilScreen(perfilViewModel, sesionViewModel, mainViewModel)
         }
         composable(route = Screen.Notificaciones.route) {
             NotificacionesScreen(notificacionesViewModel, mainViewModel)

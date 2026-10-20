@@ -8,6 +8,8 @@ import com.example.appmuseo.model.RegistroErrores
 import com.example.appmuseo.model.RegistroUiState
 import com.example.appmuseo.model.SolicitudErrores
 import com.example.appmuseo.model.SolicitudUiState
+import com.example.appmuseo.model.EditarPerfilErrores
+import com.example.appmuseo.model.EditarPerfilUiState
 
 object Validaciones {
 
@@ -90,6 +92,15 @@ object Validaciones {
         confirmarClave = validarConfirmacion(estado.clave, estado.confirmarClave),
         tipoUsuario = if (estado.tipoUsuario == null) "Selecciona tu perfil" else null,
         terminos = if (!estado.aceptaTerminos) "Debes aceptar los términos y condiciones" else null
+    )
+
+    // para guardar cambios siempre se pide la contraseña actual
+    fun validarEdicionPerfil(estado: EditarPerfilUiState): EditarPerfilErrores = EditarPerfilErrores(
+        nombre = validarNombre(estado.nombre),
+        correo = validarCorreo(estado.correo),
+        claveActual = if (estado.claveActual.isBlank()) "Escribe tu contraseña actual para confirmar" else null,
+        claveNueva = if (estado.cambiarClave) validarClaveSegura(estado.claveNueva) else null,
+        repetirClave = if (estado.cambiarClave) validarConfirmacion(estado.claveNueva, estado.repetirClave) else null
     )
 
     fun validarSolicitud(estado: SolicitudUiState, requiereEnvio: Boolean): SolicitudErrores =

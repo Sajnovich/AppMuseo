@@ -20,6 +20,7 @@ sealed class Screen(val route: String) {
     data object Favoritos : Screen("favoritos")
     data object Museos : Screen("museos")
     data object Resumen : Screen("resumen_compra")
+    data object EditarPerfil : Screen("editar_perfil")
 
     data class Detalle(val productoId: Int) : Screen(RUTA_DETALLE) {
         override fun construirRuta(): String = route.replace("{$ARG_PRODUCTO_ID}", productoId.toString())

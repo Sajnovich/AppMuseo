@@ -24,6 +24,18 @@ class FakeUsuarioDao : UsuarioDao {
 
     override suspend fun buscarPorCorreo(correo: String): UsuarioEntity? = usuarios[correo]
 
+    override suspend fun buscarPorCorreoOriginal(correo: String): UsuarioEntity? =
+        usuarios.values.find { it.correoOriginal == correo }
+
+    override suspend fun actualizarDatos(correoActual: String, nuevoCorreo: String, nombre: String) {
+        val usuario = usuarios.remove(correoActual) ?: return
+        usuarios[nuevoCorreo] = usuario.copy(correo = nuevoCorreo, nombre = nombre)
+    }
+
+    override suspend fun actualizarClave(correo: String, claveHash: String) {
+        usuarios[correo]?.let { usuarios[correo] = it.copy(claveHash = claveHash) }
+    }
+
     override suspend fun insertar(usuario: UsuarioEntity) {
         usuarios[usuario.correo] = usuario
     }
