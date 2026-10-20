@@ -5,9 +5,10 @@ Versión **sin backend**: el login usa credenciales guardadas en una variable y 
 En la Unidad 3 se reemplazan esos repositorios por una API REST (Retrofit) sin tocar las pantallas.
 
 - **Lenguaje:** Kotlin · **UI:** Jetpack Compose + Material 3 · **Arquitectura:** MVVM
-- **Persistencia local:** Room (solicitudes y usuarios registrados) + DataStore (sesión y preferencias)
-- **Recursos nativos:** cámara, galería, ubicación, notificaciones del sistema y vibración
-- **Pruebas:** 66 pruebas unitarias con JUnit 4
+- **Persistencia local:** Room (usuarios y solicitudes de cada usuario) + DataStore (sesión, preferencias y foto de perfil)
+- **Roles:** Administrador, Investigador y Cliente (se elige al iniciar sesión)
+- **Recursos nativos:** cámara, galería, lector QR, ubicación, mapa OpenStreetMap, notificaciones del sistema y vibración
+- **Pruebas:** 99 pruebas unitarias con JUnit 4
 
 ---
 
@@ -18,15 +19,20 @@ En la Unidad 3 se reemplazan esos repositorios por una API REST (Retrofit) sin t
 3. Espera a que termine el **Gradle Sync** (la primera vez descarga dependencias, necesita internet).
 4. Elige un emulador (Device Manager) y presiona **Run ▶**.
 
-**Usuarios de prueba** (también aparecen en la pantalla de login):
+**Usuarios de prueba** (en el login primero se elige el tipo de cuenta y luego aparece su usuario de prueba):
 
-| Correo | Contraseña | Perfil |
+| Rol | Correo | Contraseña |
 |---|---|---|
-| `admin@museo.cl` | `museo123` | Profesional |
-| `estudiante@museo.cl` | `duoc2026` | Estudiante |
+| Administrador | `admin@museo.cl` | `museo123` |
+| Investigador | `investigador@museo.cl` | `inves2026` |
+| Cliente | `estudiante@museo.cl` | `duoc2026` |
 
-También puedes crear una cuenta nueva con **"¿No tienes cuenta? Crear una"**: queda guardada en Room
-(la contraseña se guarda cifrada con SHA-256, nunca en texto plano).
+Si eliges un tipo de cuenta que no corresponde al usuario, la app no deja entrar y lo avisa.
+También puedes crear una cuenta nueva con **"Crear cuenta"** (queda como Cliente): se guarda en Room
+y la contraseña se guarda cifrada con SHA-256, nunca en texto plano. Las cuentas de prueba también se copian
+a Room la primera vez, por eso se pueden editar desde *Perfil → Mis datos personales*.
+
+> Si ya tenías instalada una versión anterior, la base de datos se reinicia sola (versión 4). Ante cualquier error raro, desinstala la app del emulador y vuelve a ejecutarla.
 
 ### Ejecutar las pruebas unitarias
 - Clic derecho en `app/src/test/java/com/example/appmuseo` → **Run 'Tests in appmuseo'**, o
@@ -51,8 +57,9 @@ app/src/main/java/com/example/appmuseo/
 └── ui/
     ├── theme/               → colores, tipografía y tema Material 3 (claro/oscuro)
     ├── utils/               → WindowSizeUtils (pantallas Compact / Medium / Expanded)
-    ├── components/          → reutilizables: CampoTexto, DialogoConfirmacion, TarjetaProducto, barras…
-    └── screen/              → 13 pantallas
+    ├── components/          → reutilizables: CampoTexto, DialogoConfirmacion, TarjetaProducto, Avatares, MuseoVisual, barras…
+    └── screen/              → 20 pantallas
+app/src/main/res/drawable-nodpi/ → ilustraciones de los productos (WebP)
 app/src/test/…               → pruebas unitarias
 ```
 
@@ -64,12 +71,21 @@ app/src/test/…               → pruebas unitarias
 
 | Requerimiento del caso | Dónde está |
 |---|---|
-| Catálogo unificado (merch, conservación, publicaciones, cursos) | `CatalogoScreen`, `CatalogoRepository` |
-| Solicitudes de compra o inscripción | `CarritoScreen` → `SolicitudScreen` (formulario validado) |
-| Registros con estado pendiente / completado y fecha | Room: `SolicitudEntity`, `MisSolicitudesScreen` |
+| Pantalla de carga y bienvenida | `CargaScreen` (logo grande → chico, barra y rebote) y `BienvenidaScreen` ("Crear cuenta" / "Ya tengo cuenta") |
+| Inicio de sesión por rol | `LoginScreen` (Administrador, Investigador, Cliente) |
+| Panel principal | `HomeScreen`: saludo, accesos rápidos, sección Explora, destacados y barra inferior |
+| Catálogo unificado con imágenes (merch, conservación, publicaciones, cursos) | `CatalogoScreen`, `TarjetaProducto` (ilustración de cada producto), `CatalogoRepository` |
+| Detalle con cantidad y disponibilidad | `DetalleProductoScreen` |
+| Carrito con datos calculados | `CarritoScreen`: subtotal, envío según destino y tipo (Estándar / Express) y total; `ResumenCompra` |
+| Resumen de compra antes de confirmar | `SolicitudScreen` (datos) → `ResumenCompraScreen` (productos + envío = total) |
+| Historial de compras de cada usuario | Room: `SolicitudEntity.correoUsuario`, `MisSolicitudesScreen` (Pendiente → Confirmada → Enviada → Entregada) |
+| Editar perfil (correo y contraseña) y foto | `EditarPerfilScreen`, `PerfilScreen`; la foto se guarda y se mantiene al cerrar la app |
+| Favoritos | `FavoritosScreen` (museos y recursos) |
+| Notificaciones dentro de la app | `NotificacionesScreen` con filtros por tipo |
 | Cotizador de envío nacional e internacional | `CotizadorEnvio` (reglas), `CotizadorScreen` |
-| Mapa de museos virtuales de Iberoamérica | `MapaMuseosScreen` (mapa real de OpenStreetMap con osmdroid, sin API key, "museo más cercano a mí" con la ubicación del teléfono e Intent a la app de mapas) |
-| Lectura de códigos con cámara | `EscanerScreen`: lector real de QR y código de barras (Google Code Scanner), con lectura simulada como respaldo en el emulador |
+| Mapa de museos virtuales de Iberoamérica | `MapaMuseosScreen` (mapa real de OpenStreetMap con osmdroid, sin API key, filtros Todos / País / Proyecto, tarjeta del museo y "museo más cercano a mí") |
+| Ficha de cada museo y lista completa | `DetalleMuseoScreen` (descripción, etiquetas, calificación, proyecto virtual, favoritos, cómo llegar) y `MuseosScreen` (buscador y filtro) |
+| Lectura de códigos con cámara | `EscanerScreen`: lector real de QR y código de barras (Google Code Scanner). El QR `MUSEO-1` … `MUSEO-14` abre la ficha del museo y `MDM-001` … el producto; pantalla "¡Código identificado!" |
 | Persistencia local de estados esenciales | DataStore (sesión) + Room (solicitudes) |
 | Notificaciones push simuladas | Notificación local del sistema (`Notificaciones`) + aviso animado en la app (`NotificacionSimulada`); se activan/desactivan en Perfil |
 | Registro de usuarios | `RegistroScreen` → `AuthRepository.registrar()` → Room (`UsuarioEntity`) |
@@ -85,9 +101,9 @@ app/src/test/…               → pruebas unitarias
 | 5 | Corrutinas, `suspend`, `delay`, `sealed class ResultadoLogin` | `AuthRepository`, `LoginViewModel` |
 | 7 | Estructura MVVM | Carpetas del proyecto |
 | 8 | Text, Button, Image, Column, Row, Modifier, Scaffold | Todas las pantallas |
-| 9 | Window Size Classes | `WindowSizeUtils`, Catálogo (1/2/3 columnas), Inicio |
-| 10 | `sealed class Screen`, `NavigationEvent`, `MainViewModel`, TopAppBar, Drawer, NavigationBar | `navigation/`, `Barras.kt`, `MenuLateral.kt` |
-| 11 | UiState + Errores, `validarFormulario()`, `isError` / `supportingText`, ViewModel compartido | Login, Registro, Solicitud, Cotizador y Escáner |
+| 9 | Window Size Classes | `WindowSizeUtils`, Catálogo (2/3/4 columnas) |
+| 10 | `sealed class Screen` (rutas con argumentos), `NavigationEvent`, `MainViewModel`, TopAppBar, NavigationBar | `navigation/`, `Barras.kt` |
+| 11 | UiState + Errores, `validarFormulario()`, `isError` / `supportingText`, ViewModel compartido | Login, Registro, Editar perfil, Solicitud, Cotizador y Escáner |
 | 12 | `rememberSaveable`, `derivedStateOf`, `animateColorAsState`, `AnimatedVisibility`, `AnimatedContent`, transiciones, DataStore | Carga, Carrito, Perfil, Mis solicitudes, navegación |
 | 13 | Cámara y galería, FileProvider, permisos en tiempo de ejecución, `ImagenInteligente` | Perfil, Escáner, Mapa (ubicación) |
 | EA2 | Room | `data/local/` |
@@ -101,12 +117,12 @@ si el usuario dice que no, la app sigue funcionando y le explica qué pasó.
 
 | Recurso | Para qué se usa | Permiso y manejo seguro | Archivo |
 |---|---|---|---|
-| Cámara | Foto de perfil y foto del producto | La foto la toma la app de Cámara (`TakePicture`) en un `Uri` de `FileProvider`; **no** se declara `CAMERA` (si se declarara sin concederlo, Android bloquearía la cámara); `<queries>` para encontrar la app | `BotonesCamaraGaleria.kt`, `ImagenUtils.kt` |
+| Cámara | Foto de perfil (se copia a la carpeta privada de la app y su ruta queda en DataStore, por usuario) y foto del producto | La foto la toma la app de Cámara (`TakePicture`) en un `Uri` de `FileProvider`; **no** se declara `CAMERA` (si se declarara sin concederlo, Android bloquearía la cámara); `<queries>` para encontrar la app | `BotonesCamaraGaleria.kt`, `ImagenUtils.kt` |
 | Galería | Elegir foto de perfil | Selector de fotos `PickVisualMedia`: sin permisos de almacenamiento; si cancela, no pasa nada | `BotonesCamaraGaleria.kt` |
 | Ubicación | "Museo más cercano a mí" en el mapa | Solo ubicación **aproximada** (`ACCESS_COARSE_LOCATION`); sin permiso o sin señal se usa Santiago como referencia y se avisa | `UbicacionUtils.kt`, `MapaMuseosScreen.kt` |
-| Notificaciones | Avisar cuando una solicitud se registra o se completa | `POST_NOTIFICATIONS` (Android 13+) pedido al confirmar una solicitud o al activarlas en Perfil; sin permiso, el aviso se ve dentro de la app | `Notificaciones.kt`, `SolicitudViewModel.kt` |
+| Notificaciones | Avisar cuando una solicitud se registra o cambia de estado | `POST_NOTIFICATIONS` (Android 13+) pedido al confirmar una solicitud o al activarlas en Perfil; sin permiso, el aviso se ve dentro de la app | `Notificaciones.kt`, `SolicitudViewModel.kt` |
 | Vibración | Confirmar físicamente "agregar al carrito" | Retroalimentación háptica de Compose, no requiere permiso | `TarjetaProducto.kt`, `DetalleProductoScreen.kt` |
-| Lector QR / código de barras | Escanear el código de un producto (formatos QR y CODE-128) | Google Code Scanner: Google Play services abre su propia cámara, la app no pide permiso; si se cancela, se avisa | `EscanerScreen.kt` |
+| Lector QR / código de barras | Escanear el QR de un museo (`MUSEO-n`) o el código de un producto (QR y CODE-128) | Google Code Scanner: Google Play services abre su propia cámara, la app no pide permiso; si se cancela, se avisa | `EscanerScreen.kt` |
 | App de mapas | Abrir un museo en Google Maps u otra | `Intent` implícito con `try/catch` si no hay app instalada | `MapaMuseosScreen.kt` |
 
 ---
@@ -131,10 +147,10 @@ si el usuario dice que no, la app sigue funcionando y le explica qué pasó.
 
 | Indicador | Evidencia en la app |
 |---|---|
-| **IE 2.1.1** Interfaz estructurada y navegación fluida | Jerarquía clara: Inicio → secciones por menú lateral, barra inferior y accesos rápidos; `TopAppBar` con volver; estados vacíos con acción ("Explorar catálogo"); confirmación antes de acciones que no se deshacen (`DialogoConfirmacion`); diseño adaptable (Window Size Classes) |
-| **IE 2.1.2** Formularios con validación visual por campo | Login, Registro, Solicitud, Cotizador y búsqueda del Escáner usan `CampoTexto`: ícono por campo, error en rojo con ícono y mensaje debajo, check verde cuando el dato es válido, textos de ayuda y teclado adecuado |
+| **IE 2.1.1** Interfaz estructurada y navegación fluida | Jerarquía clara: Bienvenida → login por rol → Inicio con barra inferior y accesos rápidos; compra en 3 pasos (Carrito → Datos → Resumen); `TopAppBar` con volver; estados vacíos con acción ("Explorar catálogo"); confirmación antes de acciones que no se deshacen (`DialogoConfirmacion`); diseño adaptable (Window Size Classes) |
+| **IE 2.1.2** Formularios con validación visual por campo | Login, Registro (con lista de campos obligatorios), Editar perfil, Solicitud, Cotizador y búsqueda del Escáner usan `CampoTexto`: ícono por campo, error en rojo con ícono y mensaje debajo, check verde cuando el dato es válido, textos de ayuda y teclado adecuado |
 | **IE 2.2.1** Validaciones desacopladas de la UI | Todas las reglas están en `utils/Validaciones.kt` (Kotlin puro, probado con JUnit); los ViewModels guardan los errores en el `UiState` y la pantalla solo los dibuja |
-| **IE 2.2.2** Animaciones con propósito | Transiciones entre pantallas, `animateItem` al filtrar o eliminar, cantidad y total del carrito con `AnimatedContent`, avisos con `AnimatedVisibility`, colores de estado con `animateColorAsState`, marcador del mapa con `animateDpAsState`, logo de carga |
+| **IE 2.2.2** Animaciones con propósito | Logo de carga que se achica y rebota, tarjetas que entran una tras otra, línea del escáner, check con rebote, corazón que late, línea de tiempo del pedido, transiciones entre pantallas, `animateItem` al filtrar o eliminar, cantidad y total del carrito con `AnimatedContent`, avisos con `AnimatedVisibility`, colores de estado con `animateColorAsState`, marcador del mapa con `animateDpAsState`, logo de carga |
 | **IE 2.3.1** Clases, herencia y polimorfismo | Ver sección 6 |
 | **IE 2.3.2** GitHub y Trello | Ver sección 8 |
 | **IE 2.4.1** Recursos nativos seguros y coherentes | Ver sección 5 |
@@ -146,7 +162,8 @@ si el usuario dice que no, la app sigue funcionando y le explica qué pasó.
 - **Trello:** tablero con las columnas *Por hacer → En progreso → En revisión → Listo*. Cada tarjeta corresponde a un *issue* de GitHub.
 - **Issues:** cada funcionalidad o corrección tiene su issue con la descripción y los criterios para darla por terminada.
 - **Ramas:** se trabaja en ramas `feature/...` (funcionalidades), `fix/...` (correcciones) y `docs/...` (documentación); `main` queda siempre estable.
-- **Pull Requests:** cada rama se integra a `main` con un PR que cierra su issue (`Closes #n`), así el historial muestra qué se hizo y por qué.
+- **Integración:** cada rama se integra a `main` con un commit de merge (`--no-ff`), así el historial muestra cada parte por separado.
+- **Correcciones del profesor por partes:** `feature/bienvenida-login-roles`, `feature/dashboard`, `feature/museos-y-qr`, `feature/compra-y-envio` y `feature/perfil-e-historial`.
 - **Commits:** pequeños y descriptivos, en español.
 
 ---
@@ -160,7 +177,7 @@ si el usuario dice que no, la app sigue funcionando y le explica qué pasó.
 | `MuseoRepository` (coordenadas sintéticas) | API de geolocalización; el mapa puede pasar a Google Maps |
 | Solicitudes solo en Room | Room como caché + `POST /solicitudes` |
 | Notificaciones locales | Push reales con Firebase Cloud Messaging |
-| "Marcar como completada" (botón) | El estado lo cambia el backend |
+| "Avanzar estado (simulado)" (botón) | El estado lo cambia el backend |
 
 Como las pantallas y los ViewModels hablan con los repositorios, el cambio se concentra en la carpeta `repository/`.
 
@@ -170,7 +187,7 @@ Como las pantallas y los ViewModels hablan con los repositorios, el cambio se co
 
 - **"Unsupported class file major version" al sincronizar:** en *Settings → Build, Execution, Deployment → Build Tools → Gradle*, elige como *Gradle JDK* la versión 17 o 21.
 - **Android Studio ofrece actualizar AGP:** puedes aceptar o ignorar; el proyecto funciona con la versión incluida.
-- **Cámara en el emulador:** la cámara virtual funciona, pero en el Escáner también hay un botón para *simular lectura* sin cámara y un campo para escribir el código (ej. `MDM-001`).
+- **Cámara en el emulador:** la cámara virtual funciona, pero en el Escáner también están los botones *Simular QR de museo* y *Simular producto*, y un campo para escribir el código (ej. `MUSEO-5` o `MDM-001`).
 - **"Museo más cercano" siempre dice "desde Santiago" en el emulador:** el emulador no tiene ubicación guardada.
   Abre los *Extended controls* (botón ⋯) → *Location*, elige un punto y presiona *Set location*; luego abre Google Maps una vez y vuelve a la app.
 - **No llegan notificaciones:** revisa que estén activadas en *Mi perfil* y que hayas aceptado el permiso (Android 13+). También se pueden activar en *Ajustes → Apps → AppMuseo → Notificaciones*.
