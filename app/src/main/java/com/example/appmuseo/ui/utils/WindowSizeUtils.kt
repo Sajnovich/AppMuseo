@@ -17,8 +17,8 @@ fun obtenerWindowSizeClass(): WindowSizeClass {
 @Composable
 fun columnasSegunPantalla(): Int {
     return when (obtenerWindowSizeClass().widthSizeClass) {
-        WindowWidthSizeClass.Compact -> 1
-        WindowWidthSizeClass.Medium -> 2
-        else -> 3
+        WindowWidthSizeClass.Compact -> 2
+        WindowWidthSizeClass.Medium -> 3
+        else -> 4
     }
 }

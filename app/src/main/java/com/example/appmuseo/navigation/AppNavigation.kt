@@ -33,6 +33,7 @@ import com.example.appmuseo.ui.screen.MuseosScreen
 import com.example.appmuseo.ui.screen.NotificacionesScreen
 import com.example.appmuseo.ui.screen.PerfilScreen
 import com.example.appmuseo.ui.screen.RegistroScreen
+import com.example.appmuseo.ui.screen.ResumenCompraScreen
 import com.example.appmuseo.ui.screen.SolicitudScreen
 import com.example.appmuseo.viewmodel.CarritoViewModel
 import com.example.appmuseo.viewmodel.CatalogoViewModel
@@ -149,6 +150,9 @@ fun AppNavigation() {
         }
         composable(route = Screen.Solicitud.route) {
             SolicitudScreen(solicitudViewModel, carritoViewModel, sesionViewModel, mainViewModel)
+        }
+        composable(route = Screen.Resumen.route) {
+            ResumenCompraScreen(solicitudViewModel, carritoViewModel, notificacionesViewModel, mainViewModel)
         }
         composable(route = Screen.MisSolicitudes.route) {
             MisSolicitudesScreen(solicitudViewModel, mainViewModel)

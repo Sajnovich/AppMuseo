@@ -2,6 +2,7 @@ package com.example.appmuseo.utils
 
 import com.example.appmuseo.model.Cotizacion
 import com.example.appmuseo.model.TipoDestino
+import com.example.appmuseo.model.TipoEnvio
 import com.example.appmuseo.model.Zona
 import kotlin.math.ceil
 
@@ -25,20 +26,28 @@ object CotizadorEnvio {
 
     fun calcularPesoFacturable(pesoKg: Double): Int = ceil(pesoKg).toInt().coerceAtLeast(1)
 
-    fun cotizar(zona: Zona, pesoKg: Double, subtotalCompra: Int = 0): Cotizacion {
+    fun cotizar(
+        zona: Zona,
+        pesoKg: Double,
+        subtotalCompra: Int = 0,
+        tipoEnvio: TipoEnvio = TipoEnvio.ESTANDAR
+    ): Cotizacion {
         require(pesoKg > 0) { "El peso debe ser mayor a 0 kg" }
         require(pesoKg <= PESO_MAXIMO_KG) { "El courier acepta como máximo ${PESO_MAXIMO_KG.toInt()} kg por envío" }
 
         val pesoFacturable = calcularPesoFacturable(pesoKg)
-        val costoNormal = zona.tarifaBase + zona.costoPorKg * pesoFacturable
+        val costoNormal = ((zona.tarifaBase + zona.costoPorKg * pesoFacturable) * tipoEnvio.recargo).toInt()
+        // el envio gratis es solo para el estandar dentro de chile
         val envioGratis = zona.tipo == TipoDestino.NACIONAL &&
+                tipoEnvio == TipoEnvio.ESTANDAR &&
                 subtotalCompra >= MONTO_ENVIO_GRATIS
 
         return Cotizacion(
             zona = zona,
             pesoFacturable = pesoFacturable,
             costoEnvio = if (envioGratis) 0 else costoNormal,
-            envioGratis = envioGratis
+            envioGratis = envioGratis,
+            tipoEnvio = tipoEnvio
         )
     }
 }

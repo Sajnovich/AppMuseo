@@ -72,7 +72,7 @@ import com.example.appmuseo.model.Producto
 import com.example.appmuseo.navigation.Screen
 import com.example.appmuseo.ui.components.AvatarCirculo
 import com.example.appmuseo.ui.components.BarraInferior
-import com.example.appmuseo.ui.components.IconoCategoria
+import com.example.appmuseo.ui.components.ImagenProducto
 import com.example.appmuseo.ui.theme.AzulNoche
 import com.example.appmuseo.ui.theme.AzulProfundo
 import com.example.appmuseo.ui.theme.DoradoBoton
@@ -406,9 +406,13 @@ private fun TarjetaDestacado(producto: Producto, onClick: () -> Unit) {
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
+        ImagenProducto(
+            producto = producto,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(110.dp)
+        )
         Column(modifier = Modifier.padding(12.dp)) {
-            IconoCategoria(producto.categoria, tamano = 48.dp)
-            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 producto.nombre,
                 style = MaterialTheme.typography.titleSmall,
