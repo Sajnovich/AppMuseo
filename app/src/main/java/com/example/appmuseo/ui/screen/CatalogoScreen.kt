@@ -108,7 +108,9 @@ fun CatalogoScreen(
                 items(opcionesFiltro) { categoria ->
                     FilterChip(
                         selected = estado.categoriaSeleccionada == categoria,
-                        leadingIcon = categoria?.let { { Icon(iconoDeCategoria(it), contentDescription = null, modifier = Modifier.size(18.dp)) } },
+                        leadingIcon = if (categoria != null) {
+                            { Icon(iconoDeCategoria(categoria), contentDescription = null, modifier = Modifier.size(18.dp)) }
+                        } else null,
                         onClick = { catalogoViewModel.seleccionarCategoria(categoria) },
                         label = { Text(categoria?.etiqueta ?: "Todos") }
                     )
