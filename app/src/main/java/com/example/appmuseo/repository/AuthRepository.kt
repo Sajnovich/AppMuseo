@@ -4,6 +4,7 @@ import com.example.appmuseo.data.local.UsuarioDao
 import com.example.appmuseo.data.local.UsuarioEntity
 import com.example.appmuseo.model.PerfilUsuario
 import com.example.appmuseo.model.Rol
+import com.example.appmuseo.model.ResultadoActualizacion
 import com.example.appmuseo.model.ResultadoLogin
 import com.example.appmuseo.model.ResultadoRegistro
 import com.example.appmuseo.utils.Seguridad
@@ -40,19 +41,50 @@ class AuthRepository(
         )
     }
 
+    // La primera vez copia las cuentas de prueba a Room, asi tambien se pueden editar.
+    // Se busca por correoOriginal para no volver a crearlas si la persona cambio su correo
+    private suspend fun asegurarUsuariosPrueba(dao: UsuarioDao) {
+        USUARIOS_PRUEBA.forEach { prueba ->
+            if (dao.buscarPorCorreoOriginal(prueba.correo) == null && dao.buscarPorCorreo(prueba.correo) == null) {
+                dao.insertar(
+                    UsuarioEntity(
+                        correo = prueba.correo,
+                        nombre = prueba.perfil.nombre,
+                        claveHash = Seguridad.hashSha256(prueba.clave),
+                        tipoUsuario = prueba.perfil.tipoUsuario,
+                        avatar = prueba.perfil.avatar,
+                        rol = prueba.perfil.rol.name,
+                        correoOriginal = prueba.correo
+                    )
+                )
+            }
+        }
+    }
+
+    private fun aPerfil(usuario: UsuarioEntity) = PerfilUsuario(
+        nombre = usuario.nombre,
+        correo = usuario.correo,
+        tipoUsuario = usuario.tipoUsuario,
+        rol = Rol.entries.find { it.name == usuario.rol } ?: Rol.CLIENTE,
+        avatar = usuario.avatar
+    )
+
     suspend fun login(correo: String, clave: String): ResultadoLogin {
         delay(demoraMs)
-
         val correoLimpio = correo.trim().lowercase()
 
-        val usuarioPrueba = USUARIOS_PRUEBA.find { it.correo == correoLimpio && it.clave == clave }
-        if (usuarioPrueba != null) return ResultadoLogin.Exito(usuarioPrueba.perfil)
+        // sin base de datos (pruebas unitarias) se usa la lista fija
+        val dao = usuarioDao
+        if (dao == null) {
+            val usuarioPrueba = USUARIOS_PRUEBA.find { it.correo == correoLimpio && it.clave == clave }
+            return if (usuarioPrueba != null) ResultadoLogin.Exito(usuarioPrueba.perfil)
+            else ResultadoLogin.Error("Correo o contraseña incorrectos")
+        }
 
-        val registrado = usuarioDao?.buscarPorCorreo(correoLimpio)
+        asegurarUsuariosPrueba(dao)
+        val registrado = dao.buscarPorCorreo(correoLimpio)
         if (registrado != null && registrado.claveHash == Seguridad.hashSha256(clave)) {
-            return ResultadoLogin.Exito(
-                PerfilUsuario(registrado.nombre, registrado.correo, registrado.tipoUsuario, Rol.CLIENTE, registrado.avatar)
-            )
+            return ResultadoLogin.Exito(aPerfil(registrado))
         }
         return ResultadoLogin.Error("Correo o contraseña incorrectos")
     }
@@ -62,8 +94,8 @@ class AuthRepository(
         val dao = usuarioDao ?: return ResultadoRegistro.Error("El registro no está disponible")
         val correoLimpio = correo.trim().lowercase()
 
-        val yaExiste = USUARIOS_PRUEBA.any { it.correo == correoLimpio } || dao.buscarPorCorreo(correoLimpio) != null
-        if (yaExiste) return ResultadoRegistro.Error("Ya existe una cuenta con ese correo")
+        asegurarUsuariosPrueba(dao)
+        if (dao.buscarPorCorreo(correoLimpio) != null) return ResultadoRegistro.Error("Ya existe una cuenta con ese correo")
 
         dao.insertar(
             UsuarioEntity(
@@ -75,5 +107,38 @@ class AuthRepository(
             )
         )
         return ResultadoRegistro.Exito(correoLimpio)
+    }
+
+    // Cambia nombre, correo y (si viene) la contraseña. Siempre pide la contraseña actual
+    suspend fun actualizarPerfil(
+        correoActual: String,
+        nombre: String,
+        nuevoCorreo: String,
+        claveActual: String,
+        nuevaClave: String? = null
+    ): ResultadoActualizacion {
+        delay(demoraMs)
+        val dao = usuarioDao ?: return ResultadoActualizacion.Error("La edición no está disponible")
+        asegurarUsuariosPrueba(dao)
+
+        val usuario = dao.buscarPorCorreo(correoActual.trim().lowercase())
+            ?: return ResultadoActualizacion.Error("No encontramos tu cuenta")
+
+        if (usuario.claveHash != Seguridad.hashSha256(claveActual)) {
+            return ResultadoActualizacion.Error("La contraseña actual no es correcta", campo = "claveActual")
+        }
+
+        val correoLimpio = nuevoCorreo.trim().lowercase()
+        if (correoLimpio != usuario.correo && dao.buscarPorCorreo(correoLimpio) != null) {
+            return ResultadoActualizacion.Error("Ese correo ya está en uso", campo = "correo")
+        }
+
+        dao.actualizarDatos(usuario.correo, correoLimpio, nombre.trim())
+        if (!nuevaClave.isNullOrBlank()) {
+            dao.actualizarClave(correoLimpio, Seguridad.hashSha256(nuevaClave))
+        }
+
+        val actualizado = dao.buscarPorCorreo(correoLimpio) ?: return ResultadoActualizacion.Error("No se pudo guardar")
+        return ResultadoActualizacion.Exito(aPerfil(actualizado))
     }
 }

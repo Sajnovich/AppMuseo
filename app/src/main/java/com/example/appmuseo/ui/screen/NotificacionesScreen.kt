@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.Card
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -35,6 +37,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,6 +65,9 @@ private fun iconoDeTipo(tipo: TipoNotificacion): ImageVector = when (tipo) {
 fun NotificacionesScreen(viewModel: NotificacionesViewModel, mainViewModel: MainViewModel) {
     val notificaciones by viewModel.notificaciones.collectAsState()
     val noLeidas = notificaciones.count { !it.leida }
+    // filtro por tipo (null = todas)
+    var filtro by rememberSaveable { mutableStateOf<TipoNotificacion?>(null) }
+    val visibles = notificaciones.filter { filtro == null || it.tipo == filtro }
 
     Scaffold(
         topBar = {
@@ -103,13 +111,26 @@ fun NotificacionesScreen(viewModel: NotificacionesViewModel, mainViewModel: Main
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 item {
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        item { FilterChip(selected = filtro == null, onClick = { filtro = null }, label = { Text("Todas") }) }
+                        items(TipoNotificacion.entries) { tipo ->
+                            FilterChip(
+                                selected = filtro == tipo,
+                                onClick = { filtro = if (filtro == tipo) null else tipo },
+                                label = { Text(tipo.etiqueta) },
+                                leadingIcon = { Icon(iconoDeTipo(tipo), contentDescription = null, modifier = Modifier.size(18.dp)) }
+                            )
+                        }
+                    }
+                }
+                item {
                     Text(
                         if (noLeidas > 0) "Tienes $noLeidas sin leer" else "Estás al día",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                items(notificaciones, key = { it.id }) { notificacion ->
+                items(visibles, key = { it.id }) { notificacion ->
                     FilaNotificacion(
                         notificacion = notificacion,
                         modifier = Modifier.animateItem(),

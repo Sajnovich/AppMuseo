@@ -60,6 +60,18 @@ class SesionDataStore(private val context: Context) {
             )
         }
 
+    // la foto se guarda por usuario: cada cuenta tiene la suya
+    private fun claveFoto(correo: String) = stringPreferencesKey("foto_" + correo.lowercase())
+
+    suspend fun guardarFoto(correo: String, ruta: String?) {
+        context.dataStore.edit { preferencias ->
+            if (ruta == null) preferencias.remove(claveFoto(correo)) else preferencias[claveFoto(correo)] = ruta
+        }
+    }
+
+    fun obtenerFoto(correo: String): Flow<String?> =
+        context.dataStore.data.map { preferencias -> preferencias[claveFoto(correo)] }
+
     suspend fun guardarNotificaciones(activas: Boolean) {
         context.dataStore.edit { preferencias -> preferencias[NOTIFICACIONES] = activas }
     }

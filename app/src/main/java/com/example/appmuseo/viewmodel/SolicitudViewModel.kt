@@ -7,6 +7,7 @@ import com.example.appmuseo.data.SesionDataStore
 import com.example.appmuseo.data.local.AppDatabase
 import com.example.appmuseo.data.local.EstadoSolicitud
 import com.example.appmuseo.data.local.SolicitudEntity
+import com.example.appmuseo.data.local.codigoSolicitud
 import com.example.appmuseo.model.Cotizacion
 import com.example.appmuseo.model.Curso
 import com.example.appmuseo.model.ItemCarrito
@@ -17,6 +18,7 @@ import com.example.appmuseo.repository.SolicitudRepository
 import com.example.appmuseo.utils.CotizadorEnvio
 import com.example.appmuseo.utils.Notificaciones
 import com.example.appmuseo.utils.Validaciones
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -46,9 +48,19 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
     private val _mostrarNotificacion = MutableStateFlow(false)
     val mostrarNotificacion: StateFlow<Boolean> = _mostrarNotificacion
 
-    init {
-        viewModelScope.launch {
-            repositorio.obtenerTodas().collect { lista -> _solicitudes.value = lista }
+    // correo del usuario con sesion: dueño de las solicitudes nuevas
+    private var usuarioActual = ""
+    private var trabajoHistorial: Job? = null
+
+    // se llama cada vez que cambia la sesion, asi cada perfil ve solo su historial
+    fun cargarHistorial(correo: String) {
+        if (correo == usuarioActual && trabajoHistorial != null) return
+        usuarioActual = correo
+        trabajoHistorial?.cancel()
+        _solicitudes.value = emptyList()
+        if (correo.isBlank()) return
+        trabajoHistorial = viewModelScope.launch {
+            repositorio.obtenerPorUsuario(correo).collect { lista -> _solicitudes.value = lista }
         }
     }
 
@@ -135,7 +147,9 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
         }
 
         val solicitud = SolicitudEntity(
+            correoUsuario = usuarioActual,
             tipo = tipo,
+            cantidadProductos = items.sumOf { it.cantidad },
             detalle = items.joinToString(", ") { "${it.cantidad}x ${it.producto.nombre}" },
             nombreCliente = form.nombre.trim(),
             correoCliente = form.correo.trim(),
@@ -152,15 +166,22 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
             _formulario.value = SolicitudUiState()
             _guardando.value = false
             onExito()
-            notificar(idNuevo.toInt(), "Solicitud registrada", "Solicitud #$idNuevo registrada. Estado: pendiente.")
+            notificar(idNuevo.toInt(), "Solicitud registrada", "Solicitud ${codigoSolicitud(idNuevo.toInt())} registrada. Estado: pendiente.")
         }
     }
 
-    fun marcarCompletada(solicitud: SolicitudEntity) {
+    // simula el avance del pedido. Devuelve el estado nuevo (null si ya estaba entregado)
+    fun avanzarEstado(solicitud: SolicitudEntity): String? {
+        val siguiente = EstadoSolicitud.siguiente(solicitud.estado) ?: return null
         viewModelScope.launch {
-            repositorio.actualizarEstado(solicitud.id, EstadoSolicitud.COMPLETADA)
-            notificar(solicitud.id, "Solicitud completada", "Solicitud #${solicitud.id} completada. ¡Gracias por tu compra!")
+            repositorio.actualizarEstado(solicitud.id, siguiente)
+            notificar(
+                solicitud.id,
+                "Pedido ${EstadoSolicitud.etiqueta(siguiente).lowercase()}",
+                "Tu pedido ${codigoSolicitud(solicitud.id)} ahora está: ${EstadoSolicitud.etiqueta(siguiente)}."
+            )
         }
+        return siguiente
     }
 
     fun eliminar(solicitud: SolicitudEntity) {

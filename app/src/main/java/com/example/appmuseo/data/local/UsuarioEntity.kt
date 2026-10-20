@@ -10,5 +10,7 @@ data class UsuarioEntity(
     val claveHash: String,
     val tipoUsuario: String,
     val avatar: Int = 0,
+    val rol: String = "CLIENTE",
+    val correoOriginal: String = "",   // para las cuentas de prueba: con que correo nacieron
     val fechaRegistro: Long = System.currentTimeMillis()
 )
