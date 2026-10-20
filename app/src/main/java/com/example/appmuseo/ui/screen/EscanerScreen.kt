@@ -83,7 +83,7 @@ import com.example.appmuseo.ui.components.BarraSuperior
 import com.example.appmuseo.ui.components.BotonesCamaraGaleria
 import com.example.appmuseo.ui.components.CampoTexto
 import com.example.appmuseo.ui.components.EtiquetaMuseo
-import com.example.appmuseo.ui.components.IconoCategoria
+import com.example.appmuseo.ui.components.MiniaturaProducto
 import com.example.appmuseo.ui.components.MiniaturaMuseo
 import com.example.appmuseo.ui.theme.AzulNoche
 import com.example.appmuseo.ui.theme.AzulProfundo
@@ -342,7 +342,7 @@ private fun ResultadoCodigo(
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (museo != null) MiniaturaMuseo(museo, tamano = 84.dp)
-                    if (producto != null) IconoCategoria(producto.categoria, tamano = 84.dp)
+                    if (producto != null) MiniaturaProducto(producto, tamano = 84.dp)
                     Column(modifier = Modifier.padding(start = 14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(
                             museo?.nombre ?: producto?.nombre.orEmpty(),

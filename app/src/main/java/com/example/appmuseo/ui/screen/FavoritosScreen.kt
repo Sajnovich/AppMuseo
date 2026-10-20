@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.dp
 import com.example.appmuseo.navigation.Screen
 import com.example.appmuseo.repository.MuseoRepository
 import com.example.appmuseo.ui.components.BarraSuperior
-import com.example.appmuseo.ui.components.IconoCategoria
+import com.example.appmuseo.ui.components.MiniaturaProducto
 import com.example.appmuseo.utils.formatearPrecio
 import com.example.appmuseo.viewmodel.CatalogoViewModel
 import com.example.appmuseo.viewmodel.FavoritosViewModel
@@ -95,7 +95,7 @@ fun FavoritosScreen(
                             FilaFavorito(
                                 titulo = producto.nombre,
                                 detalle = "${producto.categoria.etiqueta} · ${formatearPrecio(producto.precio)}",
-                                icono = { IconoCategoria(producto.categoria, tamano = 44.dp) },
+                                icono = { MiniaturaProducto(producto, tamano = 48.dp) },
                                 onClick = { mainViewModel.navigateTo(Screen.Detalle(producto.id)) },
                                 onQuitar = { favoritosViewModel.alternarProducto(producto.id) }
                             )

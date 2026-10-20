@@ -31,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,6 +40,8 @@ import com.example.appmuseo.navigation.Screen
 import com.example.appmuseo.ui.components.BarraInferior
 import com.example.appmuseo.ui.components.BarraSuperior
 import com.example.appmuseo.ui.components.TarjetaProducto
+import com.example.appmuseo.ui.components.iconoDeCategoria
+import androidx.compose.foundation.layout.size
 import com.example.appmuseo.ui.utils.columnasSegunPantalla
 import com.example.appmuseo.viewmodel.CarritoViewModel
 import com.example.appmuseo.viewmodel.CatalogoViewModel
@@ -81,7 +84,8 @@ fun CatalogoScreen(
             OutlinedTextField(
                 value = estado.busqueda,
                 onValueChange = catalogoViewModel::onBusquedaChange,
-                label = { Text("Buscar producto o curso") },
+                placeholder = { Text("Buscar productos, libros, cursos...") },
+                shape = RoundedCornerShape(50),
                 leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
                 trailingIcon = {
                     if (estado.busqueda.isNotEmpty()) {
@@ -104,6 +108,7 @@ fun CatalogoScreen(
                 items(opcionesFiltro) { categoria ->
                     FilterChip(
                         selected = estado.categoriaSeleccionada == categoria,
+                        leadingIcon = categoria?.let { { Icon(iconoDeCategoria(it), contentDescription = null, modifier = Modifier.size(18.dp)) } },
                         onClick = { catalogoViewModel.seleccionarCategoria(categoria) },
                         label = { Text(categoria?.etiqueta ?: "Todos") }
                     )

@@ -7,6 +7,7 @@ import com.example.appmuseo.data.SesionDataStore
 import com.example.appmuseo.data.local.AppDatabase
 import com.example.appmuseo.data.local.EstadoSolicitud
 import com.example.appmuseo.data.local.SolicitudEntity
+import com.example.appmuseo.model.Cotizacion
 import com.example.appmuseo.model.Curso
 import com.example.appmuseo.model.ItemCarrito
 import com.example.appmuseo.model.SolicitudUiState
@@ -93,6 +94,18 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    // el envio ya se eligio en el carrito, aqui solo se copia
+    fun usarEnvio(cotizacion: Cotizacion?) {
+        _formulario.update {
+            it.copy(
+                zona = cotizacion?.zona,
+                tipoDestino = cotizacion?.zona?.tipo ?: it.tipoDestino,
+                cotizacion = cotizacion,
+                errores = it.errores.copy(zona = null)
+            )
+        }
+    }
+
     fun actualizarCotizacion(pesoKg: Double, subtotal: Int) {
         val zona = _formulario.value.zona ?: return
         if (pesoKg <= 0.0) return
@@ -126,7 +139,7 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
             detalle = items.joinToString(", ") { "${it.cantidad}x ${it.producto.nombre}" },
             nombreCliente = form.nombre.trim(),
             correoCliente = form.correo.trim(),
-            zonaEnvio = if (requiereEnvio) form.zona?.nombre ?: "" else "",
+            zonaEnvio = if (requiereEnvio) "${form.zona?.nombre ?: ""} · ${form.cotizacion?.tipoEnvio?.etiqueta ?: ""}" else "",
             direccion = if (requiereEnvio) form.direccion.trim() else "",
             subtotal = subtotal,
             costoEnvio = costoEnvio,
