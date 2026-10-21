@@ -8,6 +8,7 @@ import com.example.appmuseo.data.local.AppDatabase
 import com.example.appmuseo.data.local.EstadoSolicitud
 import com.example.appmuseo.data.local.SolicitudEntity
 import com.example.appmuseo.data.local.codigoSolicitud
+import com.example.appmuseo.model.Boleta
 import com.example.appmuseo.model.Cotizacion
 import com.example.appmuseo.model.Curso
 import com.example.appmuseo.model.ItemCarrito
@@ -151,6 +152,7 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
             tipo = tipo,
             cantidadProductos = items.sumOf { it.cantidad },
             detalle = items.joinToString(", ") { "${it.cantidad}x ${it.producto.nombre}" },
+            lineas = Boleta.codificar(Boleta.desdeCarrito(items)),
             nombreCliente = form.nombre.trim(),
             correoCliente = form.correo.trim(),
             zonaEnvio = if (requiereEnvio) "${form.zona?.nombre ?: ""} · ${form.cotizacion?.tipoEnvio?.etiqueta ?: ""}" else "",
@@ -183,6 +185,8 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
         }
         return siguiente
     }
+
+    fun buscar(id: Int): SolicitudEntity? = _solicitudes.value.find { it.id == id }
 
     fun eliminar(solicitud: SolicitudEntity) {
         viewModelScope.launch { repositorio.eliminar(solicitud) }

@@ -22,6 +22,7 @@ import com.example.appmuseo.ui.screen.CarritoScreen
 import com.example.appmuseo.ui.screen.CatalogoScreen
 import com.example.appmuseo.ui.screen.CotizadorScreen
 import com.example.appmuseo.ui.screen.DetalleMuseoScreen
+import com.example.appmuseo.ui.screen.DetallePedidoScreen
 import com.example.appmuseo.ui.screen.EditarPerfilScreen
 import com.example.appmuseo.ui.screen.DetalleProductoScreen
 import com.example.appmuseo.ui.screen.EscanerScreen
@@ -162,6 +163,13 @@ fun AppNavigation() {
         }
         composable(route = Screen.Resumen.route) {
             ResumenCompraScreen(solicitudViewModel, carritoViewModel, notificacionesViewModel, mainViewModel)
+        }
+        composable(
+            route = Screen.RUTA_DETALLE_PEDIDO,
+            arguments = listOf(navArgument(Screen.ARG_PEDIDO_ID) { type = NavType.IntType })
+        ) { backStackEntry ->
+            val pedidoId = backStackEntry.arguments?.getInt(Screen.ARG_PEDIDO_ID) ?: 0
+            DetallePedidoScreen(pedidoId, solicitudViewModel, notificacionesViewModel, catalogoViewModel, carritoViewModel, mainViewModel)
         }
         composable(route = Screen.MisSolicitudes.route) {
             MisSolicitudesScreen(solicitudViewModel, notificacionesViewModel, mainViewModel)

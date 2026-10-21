@@ -78,14 +78,14 @@ app/src/test/…               → pruebas unitarias
 | Detalle con cantidad y disponibilidad | `DetalleProductoScreen` |
 | Carrito con datos calculados | `CarritoScreen`: subtotal, envío según destino y tipo (Estándar / Express) y total; `ResumenCompra` |
 | Resumen de compra antes de confirmar | `SolicitudScreen` (datos) → `ResumenCompraScreen` (productos + envío = total) |
-| Historial de compras de cada usuario | Room: `SolicitudEntity.correoUsuario`, `MisSolicitudesScreen` (Pendiente → Confirmada → Enviada → Entregada) |
+| Historial de compras de cada usuario | Room: `SolicitudEntity.correoUsuario`, `MisSolicitudesScreen`; cada pedido abre `DetallePedidoScreen` con las pestañas **Seguimiento** (Pendiente → Confirmada → Enviada → Entregada) y **Boleta** (detalle con neto, IVA y total; se puede compartir) |
 | Editar perfil (correo y contraseña) y foto | `EditarPerfilScreen`, `PerfilScreen`; la foto se guarda y se mantiene al cerrar la app |
 | Favoritos | `FavoritosScreen` (museos y recursos) |
 | Notificaciones dentro de la app | `NotificacionesScreen` con filtros por tipo |
 | Cotizador de envío nacional e internacional | `CotizadorEnvio` (reglas), `CotizadorScreen` |
 | Mapa de museos virtuales de Iberoamérica | `MapaMuseosScreen` (mapa real de OpenStreetMap con osmdroid, sin API key, filtros Todos / País / Proyecto, tarjeta del museo y "museo más cercano a mí") |
 | Ficha de cada museo y lista completa | `DetalleMuseoScreen` (descripción, etiquetas, calificación, proyecto virtual, favoritos, cómo llegar) y `MuseosScreen` (buscador y filtro) |
-| Lectura de códigos con cámara | `EscanerScreen`: lector real de QR y código de barras (Google Code Scanner). El QR `MUSEO-1` … `MUSEO-14` abre la ficha del museo y `MDM-001` … el producto; pantalla "¡Código identificado!" |
+| Lectura de códigos con cámara | `EscanerScreen`: al tocar "Escáner QR" se abre directo la cámara (Google Code Scanner). El QR `MUSEO-1` … `MUSEO-14` abre la ficha del museo y `MDM-001` … el producto; pantalla "¡Código identificado!" |
 | Persistencia local de estados esenciales | DataStore (sesión) + Room (solicitudes) |
 | Notificaciones push simuladas | Notificación local del sistema (`Notificaciones`) + aviso animado en la app (`NotificacionSimulada`); se activan/desactivan en Perfil |
 | Registro de usuarios | `RegistroScreen` → `AuthRepository.registrar()` → Room (`UsuarioEntity`) |
