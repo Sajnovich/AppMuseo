@@ -1,20 +1,9 @@
 package com.example.appmuseo.ui.screen
 
 import android.content.Context
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,6 +46,10 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -65,11 +58,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -80,15 +69,12 @@ import com.example.appmuseo.model.Museo
 import com.example.appmuseo.model.ProductoFisico
 import com.example.appmuseo.navigation.Screen
 import com.example.appmuseo.ui.components.BarraSuperior
-import com.example.appmuseo.ui.components.BotonesCamaraGaleria
 import com.example.appmuseo.ui.components.CampoTexto
 import com.example.appmuseo.ui.components.EtiquetaMuseo
 import com.example.appmuseo.ui.components.MiniaturaProducto
 import com.example.appmuseo.ui.components.MiniaturaMuseo
 import com.example.appmuseo.ui.theme.AzulNoche
-import com.example.appmuseo.ui.theme.AzulProfundo
 import com.example.appmuseo.ui.theme.DoradoBoton
-import com.example.appmuseo.ui.theme.DoradoBotonClaro
 import com.example.appmuseo.ui.theme.VerdeCompletado
 import com.example.appmuseo.utils.formatearPrecio
 import com.example.appmuseo.viewmodel.CarritoViewModel
@@ -116,28 +102,67 @@ fun EscanerScreen(
 
     val hayResultado = museo != null || producto != null
 
+    // rememberSaveable: al volver desde la ficha no se abre la camara de nuevo
+    var primeraVez by rememberSaveable { mutableStateOf(true) }
+    // sin camara (o si falla) se puede escribir el codigo a mano
+    var modoManual by rememberSaveable { mutableStateOf(false) }
+
+    fun abrirCamara() {
+        // si venia de escribir el codigo, al cancelar vuelve ahi y no se sale
+        val veniaDeManual = modoManual
+        modoManual = false
+        escanearCodigo(
+            context = context,
+            alLeer = { texto ->
+                escanerViewModel.onCodigoLeido(texto)
+                // codigo que no es de la app: se muestra el error con el campo manual
+                if (escanerViewModel.museoDetectado.value == null && escanerViewModel.productoDetectado.value == null) {
+                    modoManual = true
+                }
+            },
+            alCancelar = {
+                // si cierra la camara sin escanear, vuelve a donde estaba
+                if (veniaDeManual) {
+                    modoManual = true
+                } else if (escanerViewModel.museoDetectado.value == null && escanerViewModel.productoDetectado.value == null) {
+                    mainViewModel.navigateBack()
+                }
+            },
+            alFallar = { error ->
+                escanerViewModel.onErrorEscaneo(error)
+                modoManual = true
+            }
+        )
+    }
+
+    // al entrar desde "Escáner QR" se abre la camara altiro
+    LaunchedEffect(Unit) {
+        if (primeraVez) {
+            primeraVez = false
+            escanerViewModel.reiniciar()
+            abrirCamara()
+        }
+    }
+
     Scaffold(
         topBar = {
             BarraSuperior(
                 titulo = if (hayResultado) "Resultado del QR" else "Escáner QR",
                 onVolver = {
-                    if (hayResultado) escanerViewModel.reiniciar() else mainViewModel.navigateBack()
+                    escanerViewModel.reiniciar()
+                    mainViewModel.navigateBack()
                 }
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
-        // cambia entre "escanear" y "resultado" con una transicion
-        AnimatedContent(
-            targetState = hayResultado,
-            transitionSpec = { (fadeIn(tween(300)) + scaleIn(initialScale = 0.92f)) togetherWith fadeOut(tween(200)) },
-            label = "escaner",
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-        ) { mostrarResultado ->
-            if (mostrarResultado) {
-                ResultadoCodigo(
+        ) {
+            when {
+                hayResultado -> ResultadoCodigo(
                     museo = museo,
                     producto = producto,
                     onVerDetalle = {
@@ -150,133 +175,94 @@ fun EscanerScreen(
                             snackbarHostState.showSnackbar(if (agregado) "Agregado al carrito" else "Sin stock disponible")
                         }
                     },
-                    onVolverAEscanear = { escanerViewModel.reiniciar() }
+                    onVolverAEscanear = {
+                        escanerViewModel.reiniciar()
+                        abrirCamara()
+                    }
                 )
-            } else {
-                Column(
+
+                modoManual -> EntradaManual(
+                    codigo = codigo,
+                    error = errorCodigo,
+                    mensaje = mensaje,
+                    onCodigoChange = escanerViewModel::onCodigoChange,
+                    onBuscar = { escanerViewModel.buscarCodigo() },
+                    onSimularMuseo = { escanerViewModel.simularLecturaMuseo((1..14).random()) },
+                    onSimularProducto = { escanerViewModel.simularLectura() },
+                    onAbrirCamara = { abrirCamara() }
+                )
+
+                // mientras la camara esta abierta encima, solo un fondo simple
+                else -> Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .imePadding()
-                        .verticalScroll(rememberScrollState())
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    PanelEscaneo(
-                        onEscanear = {
-                            escanearCodigo(
-                                context = context,
-                                alLeer = { texto -> escanerViewModel.onCodigoLeido(texto) },
-                                alFallar = { error -> escanerViewModel.onErrorEscaneo(error) }
-                            )
-                        }
-                    )
-
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        mensaje?.let { Text(it, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center) }
-
-                        BotonesCamaraGaleria(
-                            onImagenObtenida = { uri -> escanerViewModel.onFotoCapturada(uri) },
-                            mostrarGaleria = false,
-                            textoCamara = "Foto del producto"
-                        )
-
-                        // para el emulador, que no tiene camara real
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(onClick = { escanerViewModel.simularLecturaMuseo((1..14).random()) }) {
-                                Text("Simular QR de museo")
-                            }
-                            TextButton(onClick = { escanerViewModel.simularLectura() }) {
-                                Text("Simular producto")
-                            }
-                        }
-
-                        HorizontalDivider()
-
-                        CampoTexto(
-                            valor = codigo,
-                            onValorChange = escanerViewModel::onCodigoChange,
-                            etiqueta = "Escribe el código",
-                            icono = Icons.Filled.QrCode,
-                            placeholder = "MUSEO-1 o MDM-001",
-                            error = errorCodigo,
-                            keyboardOptions = KeyboardOptions(
-                                capitalization = KeyboardCapitalization.Characters,
-                                imeAction = ImeAction.Search
-                            ),
-                            keyboardActions = KeyboardActions(onSearch = { escanerViewModel.buscarCodigo() }),
-                            accionFinal = {
-                                IconButton(onClick = { escanerViewModel.buscarCodigo() }) {
-                                    Icon(Icons.Filled.Search, contentDescription = "Buscar código")
-                                }
-                            }
-                        )
-                    }
+                    CircularProgressIndicator(color = DoradoBoton)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Abriendo la cámara…", style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TextButton(onClick = { modoManual = true }) { Text("¿Sin cámara? Escribir el código") }
                 }
             }
         }
     }
 }
 
+// respaldo para el emulador o si la camara falla
 @Composable
-private fun PanelEscaneo(onEscanear: () -> Unit) {
-    // linea que baja y sube dentro del marco
-    val transicion = rememberInfiniteTransition(label = "linea")
-    val avance by transicion.animateFloat(
-        initialValue = 0.1f,
-        targetValue = 0.9f,
-        animationSpec = infiniteRepeatable(tween(1600, easing = LinearEasing), RepeatMode.Reverse),
-        label = "avance"
-    )
-
+private fun EntradaManual(
+    codigo: String,
+    error: String?,
+    mensaje: String?,
+    onCodigoChange: (String) -> Unit,
+    onBuscar: () -> Unit,
+    onSimularMuseo: () -> Unit,
+    onSimularProducto: () -> Unit,
+    onAbrirCamara: () -> Unit
+) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .background(Brush.verticalGradient(listOf(AzulNoche, AzulProfundo)))
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxSize()
+            .imePadding()
+            .verticalScroll(rememberScrollState())
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("Escáner QR", style = MaterialTheme.typography.titleLarge, color = Color.White, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(4.dp))
+        Icon(Icons.Filled.QrCode2, contentDescription = null, tint = AzulNoche, modifier = Modifier.size(72.dp))
+        Text("Escribe el código", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Text(
-            "Escanea códigos de museos, publicaciones o productos.",
+            "Está impreso bajo cada QR: MUSEO-1 a MUSEO-14 o MDM-001 a MDM-009.",
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.White.copy(alpha = 0.85f),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(modifier = Modifier.height(20.dp))
+        mensaje?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center) }
 
-        Box(
-            modifier = Modifier
-                .size(210.dp)
-                .drawBehind {
-                    // esquinas del marco
-                    val largo = size.minDimension * 0.18f
-                    val grosor = 5.dp.toPx()
-                    val color = DoradoBotonClaro
-                    val w = size.width
-                    val h = size.height
-                    listOf(
-                        Offset(0f, 0f) to Pair(Offset(largo, 0f), Offset(0f, largo)),
-                        Offset(w, 0f) to Pair(Offset(w - largo, 0f), Offset(w, largo)),
-                        Offset(0f, h) to Pair(Offset(largo, h), Offset(0f, h - largo)),
-                        Offset(w, h) to Pair(Offset(w - largo, h), Offset(w, h - largo))
-                    ).forEach { (esquina, extremos) ->
-                        drawLine(color, esquina, extremos.first, grosor, StrokeCap.Round)
-                        drawLine(color, esquina, extremos.second, grosor, StrokeCap.Round)
-                    }
-                    val y = h * avance
-                    drawLine(Color(0xFF4CAF50), Offset(w * 0.08f, y), Offset(w * 0.92f, y), 3.dp.toPx())
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(Icons.Filled.QrCode2, contentDescription = null, tint = Color.White.copy(alpha = 0.9f), modifier = Modifier.size(150.dp))
-        }
+        CampoTexto(
+            valor = codigo,
+            onValorChange = onCodigoChange,
+            etiqueta = "Código",
+            icono = Icons.Filled.QrCode,
+            placeholder = "MUSEO-1 o MDM-001",
+            error = error,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Characters,
+                imeAction = ImeAction.Search
+            ),
+            keyboardActions = KeyboardActions(onSearch = { onBuscar() }),
+            accionFinal = {
+                IconButton(onClick = onBuscar) {
+                    Icon(Icons.Filled.Search, contentDescription = "Buscar código")
+                }
+            }
+        )
 
-        Spacer(modifier = Modifier.height(20.dp))
         Button(
-            onClick = onEscanear,
+            onClick = onAbrirCamara,
             colors = ButtonDefaults.buttonColors(containerColor = DoradoBoton, contentColor = Color.White),
             modifier = Modifier
                 .fillMaxWidth()
@@ -284,15 +270,15 @@ private fun PanelEscaneo(onEscanear: () -> Unit) {
         ) {
             Icon(Icons.Filled.QrCodeScanner, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Escanear con la cámara")
+            Text("Abrir la cámara")
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            "Coloca el código dentro del marco y se leerá automáticamente.",
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.White.copy(alpha = 0.75f),
-            textAlign = TextAlign.Center
-        )
+
+        HorizontalDivider()
+        Text("Para probar en el emulador", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TextButton(onClick = onSimularMuseo) { Text("Simular QR de museo") }
+            TextButton(onClick = onSimularProducto) { Text("Simular producto") }
+        }
     }
 }
 
@@ -396,6 +382,7 @@ private fun ResultadoCodigo(
 private fun escanearCodigo(
     context: Context,
     alLeer: (String) -> Unit,
+    alCancelar: () -> Unit,
     alFallar: (String) -> Unit
 ) {
     val opciones = GmsBarcodeScannerOptions.Builder()
@@ -405,6 +392,6 @@ private fun escanearCodigo(
     GmsBarcodeScanning.getClient(context, opciones)
         .startScan()
         .addOnSuccessListener { codigo -> alLeer(codigo.rawValue ?: "") }
-        .addOnCanceledListener { alFallar("Escaneo cancelado.") }
-        .addOnFailureListener { error -> alFallar("No se pudo escanear: ${error.message}") }
+        .addOnCanceledListener { alCancelar() }
+        .addOnFailureListener { error -> alFallar("No se pudo abrir la cámara: ${error.message}") }
 }
