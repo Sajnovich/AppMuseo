@@ -30,6 +30,10 @@ sealed class Screen(val route: String) {
         override fun construirRuta(): String = route.replace("{$ARG_MUSEO_ID}", museoId.toString())
     }
 
+    data class DetallePedido(val pedidoId: Int) : Screen(RUTA_DETALLE_PEDIDO) {
+        override fun construirRuta(): String = route.replace("{$ARG_PEDIDO_ID}", pedidoId.toString())
+    }
+
     open fun construirRuta(): String = route
 
     companion object {
@@ -37,5 +41,7 @@ sealed class Screen(val route: String) {
         const val RUTA_DETALLE = "detalle/{$ARG_PRODUCTO_ID}"
         const val ARG_MUSEO_ID = "museoId"
         const val RUTA_DETALLE_MUSEO = "museo/{$ARG_MUSEO_ID}"
+        const val ARG_PEDIDO_ID = "pedidoId"
+        const val RUTA_DETALLE_PEDIDO = "pedido/{$ARG_PEDIDO_ID}"
     }
 }

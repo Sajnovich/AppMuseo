@@ -30,6 +30,7 @@ data class SolicitudEntity(
     val correoUsuario: String = "",   // dueño de la solicitud, asi cada perfil ve solo las suyas
     val tipo: String,
     val detalle: String,
+    val lineas: String = "",   // productos con cantidad y precio (ver model/Boleta)
     val cantidadProductos: Int = 1,
     val nombreCliente: String,
     val correoCliente: String,
