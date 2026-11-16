@@ -5,6 +5,10 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+// IP donde corren los microservicios. 10.0.2.2 es "localhost del computador" visto desde el emulador.
+// Para un celular físico se cambia en gradle.properties (api.host=IP del computador en la red wifi)
+val apiHost: String = (project.findProperty("api.host") as String?) ?: "10.0.2.2"
+
 android {
     namespace = "com.example.appmuseo"
     compileSdk = 35
@@ -17,6 +21,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // direcciones de cada microservicio (quedan en BuildConfig)
+        buildConfigField("String", "API_USUARIOS", "\"http://$apiHost:8081/\"")
+        buildConfigField("String", "API_CATALOGO", "\"http://$apiHost:8082/\"")
+        buildConfigField("String", "API_PEDIDOS", "\"http://$apiHost:8083/\"")
     }
 
     buildTypes {
@@ -37,6 +46,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -56,6 +66,11 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("org.osmdroid:osmdroid-android:6.1.20")
     implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
+
+    // consumo de API REST
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

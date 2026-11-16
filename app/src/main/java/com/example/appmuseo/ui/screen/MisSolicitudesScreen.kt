@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -69,6 +70,9 @@ fun MisSolicitudesScreen(
     val solicitudes by solicitudViewModel.solicitudes.collectAsState()
     val mostrarNotificacion by solicitudViewModel.mostrarNotificacion.collectAsState()
     val textoNotificacion by solicitudViewModel.textoNotificacion.collectAsState()
+
+    // al abrir se actualiza el estado de los pedidos desde ms-pedidos
+    LaunchedEffect(Unit) { solicitudViewModel.sincronizarHistorial() }
 
     // filtro local de la pantalla (null = todas)
     var filtroEstado by rememberSaveable { mutableStateOf<String?>(null) }

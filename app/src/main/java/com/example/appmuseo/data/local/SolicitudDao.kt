@@ -16,6 +16,10 @@ interface SolicitudDao {
     @Insert
     suspend fun insertar(solicitud: SolicitudEntity): Long
 
+    // para no duplicar un pedido que ya está guardado cuando se sincroniza con el backend
+    @Query("SELECT * FROM solicitudes WHERE idRemoto = :idRemoto LIMIT 1")
+    suspend fun buscarPorIdRemoto(idRemoto: Long): SolicitudEntity?
+
     @Query("UPDATE solicitudes SET estado = :nuevoEstado WHERE id = :id")
     suspend fun actualizarEstado(id: Int, nuevoEstado: String)
 

@@ -1,5 +1,9 @@
 package com.example.appmuseo.viewmodel
 
+import com.example.appmuseo.data.remote.ResultadoApi
+import com.example.appmuseo.data.remote.RetrofitInstance
+import com.example.appmuseo.data.remote.dto.ItemPedidoDto
+import com.example.appmuseo.data.remote.dto.PedidoRequestDto
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -30,7 +34,8 @@ import kotlinx.coroutines.launch
 class SolicitudViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repositorio = SolicitudRepository(
-        AppDatabase.obtenerBaseDeDatos(application).solicitudDao()
+        AppDatabase.obtenerBaseDeDatos(application).solicitudDao(),
+        RetrofitInstance.pedidos
     )
     private val sesionDataStore = SesionDataStore(application)
 
@@ -63,6 +68,14 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
         trabajoHistorial = viewModelScope.launch {
             repositorio.obtenerPorUsuario(correo).collect { lista -> _solicitudes.value = lista }
         }
+        sincronizarHistorial()
+    }
+
+    // trae los pedidos guardados en ms-pedidos (por ejemplo, hechos desde otro teléfono)
+    fun sincronizarHistorial() {
+        val correo = usuarioActual
+        if (correo.isBlank()) return
+        viewModelScope.launch { repositorio.sincronizar(correo) }
     }
 
     fun precargarDatos(nombre: String, correo: String) {
@@ -162,9 +175,33 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
             total = subtotal + costoEnvio
         )
 
+        // al backend solo se manda qué se compra y cuánto: precios y envío los calcula ms-pedidos
+        val pedido = PedidoRequestDto(
+            correoUsuario = usuarioActual,
+            nombreCliente = form.nombre.trim(),
+            correoCliente = form.correo.trim(),
+            direccion = if (requiereEnvio) form.direccion.trim() else null,
+            zona = if (requiereEnvio) form.zona?.nombre else null,
+            tipoEnvio = if (requiereEnvio) form.cotizacion?.tipoEnvio?.name else null,
+            items = items.map { ItemPedidoDto(it.producto.id.toLong(), it.cantidad) }
+        )
+
         _guardando.value = true
+        _formulario.update { it.copy(errorServidor = null) }
         viewModelScope.launch {
-            val idNuevo = repositorio.insertar(solicitud)
+            val aGuardar = when (val respuesta = repositorio.crearEnServidor(pedido)) {
+                // se guarda con los montos que calculó el servidor
+                is ResultadoApi.Exito -> SolicitudRepository.aEntidad(respuesta.datos, usuarioActual).copy(tipo = tipo)
+                // ej: "No hay stock suficiente...": no se guarda y se muestra el motivo
+                is ResultadoApi.ErrorServidor -> {
+                    _formulario.update { it.copy(errorServidor = respuesta.campos.values.firstOrNull() ?: respuesta.mensaje) }
+                    _guardando.value = false
+                    return@launch
+                }
+                // sin conexión se guarda solo en el teléfono, como antes
+                is ResultadoApi.SinConexion -> solicitud
+            }
+            val idNuevo = repositorio.insertar(aGuardar)
             _formulario.value = SolicitudUiState()
             _guardando.value = false
             onExito()
@@ -176,6 +213,15 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
     fun avanzarEstado(solicitud: SolicitudEntity): String? {
         val siguiente = EstadoSolicitud.siguiente(solicitud.estado) ?: return null
         viewModelScope.launch {
+            val idRemoto = solicitud.idRemoto
+            if (idRemoto != null) {
+                // el estado real lo lleva ms-pedidos
+                val respuesta = repositorio.avanzarEnServidor(idRemoto)
+                if (respuesta is ResultadoApi.ErrorServidor) {
+                    mostrarAviso(respuesta.mensaje)
+                    return@launch
+                }
+            }
             repositorio.actualizarEstado(solicitud.id, siguiente)
             notificar(
                 solicitud.id,
@@ -189,7 +235,35 @@ class SolicitudViewModel(application: Application) : AndroidViewModel(applicatio
     fun buscar(id: Int): SolicitudEntity? = _solicitudes.value.find { it.id == id }
 
     fun eliminar(solicitud: SolicitudEntity) {
-        viewModelScope.launch { repositorio.eliminar(solicitud) }
+        viewModelScope.launch {
+            val idRemoto = solicitud.idRemoto
+            if (idRemoto != null) {
+                // en el backend se anula el pedido y se devuelve el stock
+                when (val respuesta = repositorio.anularEnServidor(idRemoto)) {
+                    is ResultadoApi.Exito -> Unit
+                    is ResultadoApi.ErrorServidor -> {
+                        // 404: ya no existe en el servidor, se puede borrar igual de este teléfono
+                        if (respuesta.codigo != 404) {
+                            mostrarAviso(respuesta.mensaje)
+                            return@launch
+                        }
+                    }
+                    is ResultadoApi.SinConexion -> {
+                        mostrarAviso("Sin conexión: no se pudo anular el pedido en el servidor")
+                        return@launch
+                    }
+                }
+            }
+            repositorio.eliminar(solicitud)
+        }
+    }
+
+    // mensaje en pantalla sin notificación del sistema
+    private suspend fun mostrarAviso(texto: String) {
+        _textoNotificacion.value = texto
+        _mostrarNotificacion.value = true
+        delay(3_500)
+        _mostrarNotificacion.value = false
     }
 
     private suspend fun notificar(id: Int, titulo: String, texto: String) {

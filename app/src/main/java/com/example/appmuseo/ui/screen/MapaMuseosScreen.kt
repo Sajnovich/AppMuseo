@@ -47,6 +47,7 @@ import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -62,6 +63,7 @@ import androidx.core.content.ContextCompat
 import com.example.appmuseo.model.Museo
 import com.example.appmuseo.model.MuseoCercano
 import com.example.appmuseo.navigation.Screen
+import com.example.appmuseo.ui.components.AvisoRed
 import com.example.appmuseo.ui.components.BarraInferior
 import com.example.appmuseo.ui.components.BarraSuperior
 import com.example.appmuseo.ui.components.Estrellas
@@ -81,6 +83,9 @@ private val FILTROS = listOf("Todos", "País", "Proyecto")
 fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel, noLeidas: Int = 0) {
     val estado by mapaViewModel.estado.collectAsState()
     val context = LocalContext.current
+
+    // al abrir el mapa se piden los museos al backend
+    LaunchedEffect(Unit) { mapaViewModel.sincronizar() }
 
     // 0 = todos, 1 = por pais, 2 = por proyecto
     var filtro by rememberSaveable { mutableIntStateOf(0) }
@@ -129,6 +134,7 @@ fun MapaMuseosScreen(mapaViewModel: MapaViewModel, mainViewModel: MainViewModel,
                     .align(Alignment.TopCenter)
                     .padding(12.dp)
             ) {
+                AvisoRed(estado.red, onReintentar = mapaViewModel::sincronizar)
                 Surface(shape = RoundedCornerShape(50), shadowElevation = 4.dp) {
                     SingleChoiceSegmentedButtonRow(modifier = Modifier.padding(4.dp)) {
                         FILTROS.forEachIndexed { i, texto ->

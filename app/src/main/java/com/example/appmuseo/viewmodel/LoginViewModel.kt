@@ -45,9 +45,9 @@ class LoginViewModel(
 
         viewModelScope.launch {
             _estado.update { it.copy(resultado = ResultadoLogin.Autenticando) }
-            var resultado = authRepository.login(_estado.value.correo, _estado.value.clave)
-            // la cuenta tiene que ser del rol que eligio
+            // la cuenta tiene que ser del rol que eligio (lo revisa el backend y tambien aqui)
             val rol = _estado.value.rolSeleccionado
+            var resultado = authRepository.login(_estado.value.correo, _estado.value.clave, rol)
             if (resultado is ResultadoLogin.Exito && rol != null && resultado.perfil.rol != rol) {
                 resultado = ResultadoLogin.Error("Esta cuenta no es de ${rol.etiqueta}. Revisa el tipo de cuenta")
             }

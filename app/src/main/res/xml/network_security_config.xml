@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Los microservicios corren en el computador con HTTP (sin certificado), así que se permite
+    tráfico sin cifrar SOLO hacia direcciones locales. Internet (OpenStreetMap) sigue usando HTTPS.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <!-- celular físico: agrega aquí la IP del computador, la misma de api.host -->
+    </domain-config>
+</network-security-config>
