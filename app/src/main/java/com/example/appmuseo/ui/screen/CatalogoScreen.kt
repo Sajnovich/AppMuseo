@@ -26,6 +26,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.appmuseo.model.Categoria
 import com.example.appmuseo.navigation.Screen
+import com.example.appmuseo.ui.components.AvisoRed
 import com.example.appmuseo.ui.components.BarraInferior
 import com.example.appmuseo.ui.components.BarraSuperior
 import com.example.appmuseo.ui.components.TarjetaProducto
@@ -57,6 +59,9 @@ fun CatalogoScreen(
     noLeidas: Int = 0
 ) {
     val estado by catalogoViewModel.estado.collectAsState()
+
+    // precios y stock al día desde ms-catalogo
+    LaunchedEffect(Unit) { catalogoViewModel.sincronizar() }
     val itemsCarrito by carritoViewModel.items.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -81,6 +86,11 @@ fun CatalogoScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
+            AvisoRed(
+                estado.red,
+                onReintentar = catalogoViewModel::sincronizar,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
             OutlinedTextField(
                 value = estado.busqueda,
                 onValueChange = catalogoViewModel::onBusquedaChange,

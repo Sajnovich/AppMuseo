@@ -1,21 +1,50 @@
 package com.example.appmuseo.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.appmuseo.data.remote.ResultadoApi
+import com.example.appmuseo.data.remote.RetrofitInstance
+import com.example.appmuseo.model.EstadoRed
+import kotlinx.coroutines.launch
 import com.example.appmuseo.model.MapaUiState
 import com.example.appmuseo.model.Museo
 import com.example.appmuseo.model.MuseoCercano
 import com.example.appmuseo.repository.MuseoRepository
+import com.example.appmuseo.repository.OsmRepository
 import com.example.appmuseo.utils.Distancia
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 class MapaViewModel(
-    private val repositorio: MuseoRepository = MuseoRepository()
+    private val repositorio: MuseoRepository = MuseoRepository(RetrofitInstance.catalogo)
 ) : ViewModel() {
 
     private val _estado = MutableStateFlow(MapaUiState(museos = repositorio.obtenerMuseos()))
     val estado: StateFlow<MapaUiState> = _estado
+
+    // Pide los datos a ms-catalogo con Retrofit. Si el servidor no responde se sigue con la copia local
+    fun sincronizar() {
+        if (_estado.value.red.cargando) return
+        _estado.update { it.copy(red = it.red.copy(cargando = true, aviso = null)) }
+        viewModelScope.launch {
+            val resultado = repositorio.sincronizar()
+            _estado.update {
+                it.copy(
+                    museos = repositorio.obtenerMuseos(),
+                    red = EstadoRed(
+                        cargando = false,
+                        desdeServidor = resultado is ResultadoApi.Exito,
+                        aviso = when (resultado) {
+                            is ResultadoApi.Exito -> null
+                            is ResultadoApi.ErrorServidor -> resultado.mensaje
+                            is ResultadoApi.SinConexion -> "Sin conexión con el servidor: mostrando datos guardados"
+                        }
+                    )
+                )
+            }
+        }
+    }
 
     fun seleccionarPais(pais: String?) {
         _estado.update { actual ->
@@ -38,6 +67,22 @@ class MapaViewModel(
     }
 
     fun buscarMuseo(id: Int): Museo? = repositorio.buscarPorId(id)
+
+    // API externa (OpenStreetMap): dirección real a partir de la latitud y longitud del museo
+    private val osm by lazy { OsmRepository(RetrofitInstance.osm) }
+    private val _direccionOsm = MutableStateFlow<String?>(null)
+    val direccionOsm: StateFlow<String?> = _direccionOsm
+
+    fun cargarDireccion(museo: Museo) {
+        _direccionOsm.value = null
+        viewModelScope.launch {
+            _direccionOsm.value = when (val respuesta = osm.direccion(museo.latitud, museo.longitud)) {
+                is ResultadoApi.Exito -> respuesta.datos
+                is ResultadoApi.ErrorServidor -> "OpenStreetMap no respondió (${respuesta.codigo})"
+                is ResultadoApi.SinConexion -> "Sin conexión a internet"
+            }
+        }
+    }
 
     fun seleccionarMuseo(museo: Museo?) {
         _estado.update { it.copy(museoSeleccionado = museo) }

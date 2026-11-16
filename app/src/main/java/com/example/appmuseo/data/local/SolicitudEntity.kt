@@ -40,7 +40,8 @@ data class SolicitudEntity(
     val costoEnvio: Int,
     val total: Int,
     val estado: String = EstadoSolicitud.PENDIENTE,
-    val fecha: Long = System.currentTimeMillis()
+    val fecha: Long = System.currentTimeMillis(),
+    val idRemoto: Long? = null   // id del pedido en ms-pedidos (null si se guardó sin conexión)
 )
 
 // numero "bonito" para mostrar, ej: #2026-00007

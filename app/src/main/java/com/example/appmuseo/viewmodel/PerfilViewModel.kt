@@ -9,6 +9,7 @@ import com.example.appmuseo.data.local.AppDatabase
 import com.example.appmuseo.model.EditarPerfilUiState
 import com.example.appmuseo.model.PerfilUsuario
 import com.example.appmuseo.model.ResultadoActualizacion
+import com.example.appmuseo.data.remote.RetrofitInstance
 import com.example.appmuseo.repository.AuthRepository
 import com.example.appmuseo.repository.SolicitudRepository
 import com.example.appmuseo.utils.Validaciones
@@ -26,7 +27,7 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
 
     private val sesionDataStore = SesionDataStore(application)
     private val baseDeDatos = AppDatabase.obtenerBaseDeDatos(application)
-    private val authRepository = AuthRepository(demoraMs = 600, usuarioDao = baseDeDatos.usuarioDao())
+    private val authRepository = AuthRepository(demoraMs = 600, usuarioDao = baseDeDatos.usuarioDao(), api = RetrofitInstance.usuarios)
     private val solicitudRepository = SolicitudRepository(baseDeDatos.solicitudDao())
 
     private val _imagenUri = MutableStateFlow<Uri?>(null)

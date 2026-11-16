@@ -1,0 +1,50 @@
+package com.example.appmuseo.data.remote
+
+import com.example.appmuseo.BuildConfig
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
+
+// Un solo lugar donde se crean los clientes HTTP.
+// "by lazy" hace que cada uno se cree recién la primera vez que se usa
+object RetrofitInstance {
+
+    private val cliente: OkHttpClient by lazy {
+        val log = HttpLoggingInterceptor().apply {
+            // en el Logcat se ven las peticiones y respuestas (solo en debug)
+            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
+        }
+        OkHttpClient.Builder()
+            .connectTimeout(5, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .addInterceptor(log)
+            .build()
+    }
+
+    // Nominatim exige identificar la app con un User-Agent propio
+    private val clienteOsm: OkHttpClient by lazy {
+        cliente.newBuilder()
+            .addInterceptor { cadena ->
+                cadena.proceed(
+                    cadena.request().newBuilder()
+                        .header("User-Agent", "AppMuseo/1.0 (proyecto academico Duoc UC)")
+                        .build()
+                )
+            }
+            .build()
+    }
+
+    private fun crear(urlBase: String, http: OkHttpClient = cliente): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(urlBase)
+            .client(http)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+    val usuarios: UsuariosApi by lazy { crear(BuildConfig.API_USUARIOS).create(UsuariosApi::class.java) }
+    val catalogo: CatalogoApi by lazy { crear(BuildConfig.API_CATALOGO).create(CatalogoApi::class.java) }
+    val pedidos: PedidosApi by lazy { crear(BuildConfig.API_PEDIDOS).create(PedidosApi::class.java) }
+    val osm: NominatimApi by lazy { crear("https://nominatim.openstreetmap.org/", clienteOsm).create(NominatimApi::class.java) }
+}

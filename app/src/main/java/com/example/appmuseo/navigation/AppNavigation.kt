@@ -51,6 +51,7 @@ import com.example.appmuseo.viewmodel.RegistroViewModel
 import com.example.appmuseo.viewmodel.SesionViewModel
 import com.example.appmuseo.viewmodel.SolicitudViewModel
 import com.example.appmuseo.data.local.AppDatabase
+import com.example.appmuseo.data.remote.RetrofitInstance
 import com.example.appmuseo.repository.AuthRepository
 import kotlinx.coroutines.flow.collectLatest
 
@@ -61,9 +62,12 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val context = LocalContext.current
 
-    // Repositorio de autenticación con acceso a Room
+    // Repositorio de autenticación: backend (ms-usuarios) + copia en Room
     val authRepository = remember {
-        AuthRepository(usuarioDao = AppDatabase.obtenerBaseDeDatos(context).usuarioDao())
+        AuthRepository(
+            usuarioDao = AppDatabase.obtenerBaseDeDatos(context).usuarioDao(),
+            api = RetrofitInstance.usuarios
+        )
     }
 
     val mainViewModel: MainViewModel = viewModel()

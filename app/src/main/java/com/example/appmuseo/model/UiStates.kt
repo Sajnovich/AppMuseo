@@ -3,13 +3,21 @@ package com.example.appmuseo.model
 data class CatalogoUiState(
     val productos: List<Producto> = emptyList(),
     val categoriaSeleccionada: Categoria? = null,
-    val busqueda: String = ""
+    val busqueda: String = "",
+    val red: EstadoRed = EstadoRed()
 ) {
     val productosFiltrados: List<Producto>
         get() = productos
             .filter { categoriaSeleccionada == null || it.categoria == categoriaSeleccionada }
             .filter { busqueda.isBlank() || it.nombre.contains(busqueda.trim(), ignoreCase = true) }
 }
+
+// de dónde vienen los datos que se muestran: del backend o de la copia local
+data class EstadoRed(
+    val cargando: Boolean = false,
+    val desdeServidor: Boolean = false,
+    val aviso: String? = null
+)
 
 data class SolicitudUiState(
     val nombre: String = "",
@@ -19,7 +27,8 @@ data class SolicitudUiState(
     val zona: Zona? = null,
     val cotizacion: Cotizacion? = null,
     val aceptaTerminos: Boolean = false,
-    val errores: SolicitudErrores = SolicitudErrores()
+    val errores: SolicitudErrores = SolicitudErrores(),
+    val errorServidor: String? = null
 )
 
 data class SolicitudErrores(
@@ -54,7 +63,8 @@ data class MapaUiState(
     val paisSeleccionado: String? = null,   // null = todos los países
     val tipoSeleccionado: String? = null,   // filtro "Proyecto" (arte, historia...)
     val museoSeleccionado: Museo? = null,
-    val cercano: MuseoCercano? = null
+    val cercano: MuseoCercano? = null,
+    val red: EstadoRed = EstadoRed()
 ) {
     val museosVisibles: List<Museo>
         get() = museos.filter {

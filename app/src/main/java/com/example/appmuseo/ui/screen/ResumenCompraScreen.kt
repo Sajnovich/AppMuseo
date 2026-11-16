@@ -194,6 +194,16 @@ fun ResumenCompraScreen(
                 }
             }
 
+            // motivo que devuelve el backend si no se pudo confirmar (ej: sin stock)
+            formulario.errorServidor?.let { error ->
+                Text(
+                    error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
             Button(
                 onClick = {
                     if (Notificaciones.necesitaPermiso(context)) {
