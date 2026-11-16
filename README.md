@@ -1,14 +1,86 @@
-# AppMuseo · Museo de los Museos (EA2 · DSY1105)
+# AppMuseo · Museo de los Museos (DSY1105 · Evaluación Parcial 4)
 
 MVP de la **aplicación móvil integrada para centralización comercial y Mapa de Museos Virtuales** del caso *Museo de los Museos*.
-Versión **sin backend**: el login usa credenciales guardadas en una variable y los catálogos están escritos en el código.
-En la Unidad 3 se reemplazan esos repositorios por una API REST (Retrofit) sin tocar las pantallas.
+Desde la EA3 la app se conecta a un **backend de microservicios Spring Boot + MySQL** (repositorio **AppMuseo-Backend**) con **Retrofit**, y consume la API externa de **OpenStreetMap (Nominatim)**. Si el servidor no responde, sigue funcionando con la copia guardada en el teléfono.
 
 - **Lenguaje:** Kotlin · **UI:** Jetpack Compose + Material 3 · **Arquitectura:** MVVM
 - **Persistencia local:** Room (usuarios y solicitudes de cada usuario) + DataStore (sesión, preferencias y foto de perfil)
 - **Roles:** Administrador, Investigador y Cliente (se elige al iniciar sesión)
 - **Recursos nativos:** cámara, galería, lector QR, ubicación, mapa OpenStreetMap, notificaciones del sistema y vibración
-- **Pruebas:** 99 pruebas unitarias con JUnit 4
+- **Backend:** ms-usuarios, ms-catalogo y ms-pedidos (Spring Boot + MySQL), consumidos con Retrofit
+- **Pruebas:** 104 pruebas JUnit, más pruebas Kotest + MockK y pruebas de interfaz con Compose UI Test
+- **Entrega:** APK firmada con KeyStore propio (ver `docs/EA3_backend_y_apk.md`)
+
+---
+
+## Entrega Evaluación Parcial 4
+
+### Nombre del proyecto
+**AppMuseo · Museo de los Museos**: app móvil para descubrir museos virtuales de Iberoamérica, escanear sus códigos QR, comprar en la tienda del museo y seguir cada pedido con su boleta.
+
+### Integrantes
+| Integrante | Rol en el proyecto |
+|---|---|
+| Eduardo Sajnovich | Desarrollo completo: app Android, microservicios Spring Boot, pruebas, APK firmada y planificación en Trello |
+
+### Funcionalidades
+- Registro e inicio de sesión con tres roles (Administrador, Investigador, Cliente), contra **ms-usuarios**.
+- Perfil editable (nombre, correo, contraseña y foto con la cámara).
+- Mapa **OpenStreetMap** con los 14 museos, filtros por país o proyecto y museo más cercano por GPS.
+- Ficha de cada museo con favoritos y **dirección real obtenida de la API externa Nominatim**.
+- Escáner QR de museos (`MUSEO-5`) y productos (`MDM-001`).
+- Catálogo con búsqueda y categorías, precios y stock desde **ms-catalogo**.
+- Carrito con cotizador de envío (estándar o express, nacional o internacional, gratis sobre $50.000).
+- Compra confirmada en **ms-pedidos**, que calcula los totales, descuenta el stock y entrega la boleta con neto e IVA.
+- Seguimiento del pedido (Pendiente → Confirmada → Enviada → Entregada), anulación y "volver a comprar".
+- Funciona sin conexión con la copia guardada en Room y avisa cuando el servidor no responde.
+
+### CRUD desde la app
+| Operación | Dónde | Endpoint |
+|---|---|---|
+| **Create** | Registro de cuenta · Confirmar compra | `POST /api/usuarios/registro` · `POST /api/pedidos` |
+| **Read** | Mapa, catálogo, mis compras | `GET /api/museos` · `GET /api/productos` · `GET /api/pedidos?correo=` |
+| **Update** | Editar perfil · Avanzar estado del pedido | `PUT /api/usuarios/{id}` · `PATCH /api/pedidos/{id}/avanzar` |
+| **Delete** | Anular un pedido (vuelve el stock) | `DELETE /api/pedidos/{id}` |
+
+### Endpoints utilizados
+
+**Microservicios propios** (repositorio [AppMuseo-Backend](https://github.com/Sajnovich/AppMuseo-Backend), Spring Boot + MySQL):
+
+| Microservicio | Método y ruta | Uso en la app |
+|---|---|---|
+| ms-usuarios :8081 | `POST /api/usuarios/login` | Inicio de sesión |
+| | `POST /api/usuarios/registro` | Crear cuenta |
+| | `GET /api/usuarios/correo/{correo}` · `PUT /api/usuarios/{id}` | Editar perfil |
+| ms-catalogo :8082 | `GET /api/museos` | Mapa y lista de museos |
+| | `GET /api/productos` | Catálogo |
+| ms-pedidos :8083 | `POST /api/pedidos` | Confirmar compra |
+| | `GET /api/pedidos?correo=` | Mis compras |
+| | `PATCH /api/pedidos/{id}/avanzar` | Seguimiento |
+| | `DELETE /api/pedidos/{id}` | Anular pedido |
+
+**API externa:** OpenStreetMap **Nominatim**, consumida con Retrofit.
+
+| Método y ruta | Uso en la app |
+|---|---|
+| `GET https://nominatim.openstreetmap.org/reverse?lat=&lon=&format=jsonv2` | Dirección real del museo en su ficha |
+
+### Pasos para ejecutar
+1. **Base de datos:** en `AppMuseo-Backend` corre `./levantar-bd.sh`, que enciende MySQL en Docker.
+2. **Microservicios:** en `AppMuseo-Backend` ejecuta `CatalogoApplication`, `UsuariosApplication` y `PedidosApplication`. Puedes revisarlos en `http://localhost:8082/swagger-ui.html`.
+3. **App:** abre este proyecto en Android Studio, espera el Gradle Sync y presiona **Run ▶** en un emulador. El emulador llega al computador por `10.0.2.2`.
+4. **Cuentas de prueba:** `estudiante@museo.cl` / `duoc2026` · `admin@museo.cl` / `museo123` · `investigador@museo.cl` / `inves2026`.
+5. **Pruebas y cobertura:** `./gradlew reporteCobertura`. El reporte queda en `app/build/reports/jacoco/reporteCobertura/html/index.html`.
+6. **APK firmada:** `./gradlew assembleRelease`. El archivo queda en `app/build/outputs/apk/release/AppMuseo-v1.0.0-release.apk`, y una copia lista para instalar está en `apk/`.
+
+### APK firmado y llave (.jks)
+- **Llave:** `keystore/appmuseo-release.jks` (alias `appmuseo`, RSA 2048, válida hasta 2051).
+- **Configuración:** `keystore.properties` y `signingConfigs` en `app/build.gradle.kts`.
+- **APK:** `apk/AppMuseo-v1.0.0-release.apk`.
+
+| APK firmado (verificación de la firma) | Llave .jks |
+|---|---|
+| ![APK firmado](docs/capturas/apk_firmado.png) | ![Llave jks](docs/capturas/llave_jks.png) |
 
 ---
 
@@ -168,18 +240,17 @@ si el usuario dice que no, la app sigue funcionando y le explica qué pasó.
 
 ---
 
-## 9. Qué cambia en la Unidad 3 (backend)
+## 9. Unidad 3: backend, Retrofit y APK firmada
 
-| Hoy (simulado) | Unidad 3 |
+| Antes (EA2) | Ahora (EA3) |
 |---|---|
-| `AuthRepository.USUARIOS_PRUEBA` (variable) + usuarios en Room | `POST /login` y `POST /usuarios` con Retrofit + token |
-| `CatalogoRepository` (lista en código) | `GET /productos` y `GET /cursos` del sitio institucional |
-| `MuseoRepository` (coordenadas sintéticas) | API de geolocalización; el mapa puede pasar a Google Maps |
-| Solicitudes solo en Room | Room como caché + `POST /solicitudes` |
-| Notificaciones locales | Push reales con Firebase Cloud Messaging |
-| "Avanzar estado (simulado)" (botón) | El estado lo cambia el backend |
+| `AuthRepository.USUARIOS_PRUEBA` + usuarios en Room | `POST /api/usuarios/login` y `/registro` en ms-usuarios (BCrypt); Room queda como copia sin conexión |
+| `CatalogoRepository` y `MuseoRepository` con listas en código | `GET /api/productos` y `GET /api/museos` en ms-catalogo; la lista local es el respaldo |
+| Compras solo en Room | `POST /api/pedidos` en ms-pedidos: el servidor calcula precios, envío, neto e IVA y descuenta stock |
+| "Avanzar estado" solo en el teléfono | `PATCH /api/pedidos/{id}/avanzar` en el servidor |
+| Ficha del museo con ciudad y país | Además, dirección real desde la API externa de OpenStreetMap (Nominatim) |
 
-Como las pantallas y los ViewModels hablan con los repositorios, el cambio se concentra en la carpeta `repository/`.
+Para levantar el backend, revisa el README de **AppMuseo-Backend**. El detalle de Retrofit, las pruebas y la APK firmada está en [`docs/EA3_backend_y_apk.md`](docs/EA3_backend_y_apk.md).
 
 ---
 

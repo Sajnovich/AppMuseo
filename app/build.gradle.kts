@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -10,16 +12,25 @@ plugins {
 // Para un celular físico se cambia en gradle.properties (api.host=IP del computador en la red wifi)
 val apiHost: String = (project.findProperty("api.host") as String?) ?: "10.0.2.2"
 
+// Datos de la firma (KeyStore): ruta del .jks, alias y contraseñas, leídos desde keystore.properties.
+// Se entregan en el repositorio porque lo pide la evaluación; en una app real ese archivo no se publica
+val archivoFirma = rootProject.file("keystore.properties")
+val firma = Properties().apply {
+    if (archivoFirma.exists()) archivoFirma.inputStream().use { load(it) }
+}
+
 android {
     namespace = "com.example.appmuseo"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.appmuseo"
+        // identificador único de la app en Android y en Google Play (no puede empezar con "com.example")
+        applicationId = "cl.duoc.museodelosmuseos"
         minSdk = 26
         targetSdk = 35
+        // versionCode sube en cada publicación; versionName es lo que ve el usuario
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -29,12 +40,27 @@ android {
         buildConfigField("String", "API_PEDIDOS", "\"http://$apiHost:8083/\"")
     }
 
+    signingConfigs {
+        create("release") {
+            if (archivoFirma.exists()) {
+                storeFile = rootProject.file(firma.getProperty("storeFile"))
+                storePassword = firma.getProperty("storePassword")
+                keyAlias = firma.getProperty("keyAlias")
+                keyPassword = firma.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         debug {
             // mide qué líneas de código recorren las pruebas unitarias (JaCoCo)
             enableUnitTestCoverage = true
         }
         release {
+            // si existe keystore.properties, el APK release sale firmado con nuestra clave
+            if (archivoFirma.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -87,6 +113,11 @@ tasks.register<JacocoReport>("reporteCobertura") {
     executionData.setFrom(
         fileTree(layout.buildDirectory) { include("outputs/unit_test_code_coverage/debugUnitTest/*.exec") }
     )
+}
+
+// nombre del archivo generado: AppMuseo-v1.0.0-release.apk
+base {
+    archivesName.set("AppMuseo-v1.0.0")
 }
 
 dependencies {
