@@ -10,6 +10,7 @@ import com.example.appmuseo.model.MapaUiState
 import com.example.appmuseo.model.Museo
 import com.example.appmuseo.model.MuseoCercano
 import com.example.appmuseo.repository.MuseoRepository
+import com.example.appmuseo.repository.OsmRepository
 import com.example.appmuseo.utils.Distancia
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -66,6 +67,22 @@ class MapaViewModel(
     }
 
     fun buscarMuseo(id: Int): Museo? = repositorio.buscarPorId(id)
+
+    // API externa (OpenStreetMap): dirección real a partir de la latitud y longitud del museo
+    private val osm by lazy { OsmRepository(RetrofitInstance.osm) }
+    private val _direccionOsm = MutableStateFlow<String?>(null)
+    val direccionOsm: StateFlow<String?> = _direccionOsm
+
+    fun cargarDireccion(museo: Museo) {
+        _direccionOsm.value = null
+        viewModelScope.launch {
+            _direccionOsm.value = when (val respuesta = osm.direccion(museo.latitud, museo.longitud)) {
+                is ResultadoApi.Exito -> respuesta.datos
+                is ResultadoApi.ErrorServidor -> "OpenStreetMap no respondió (${respuesta.codigo})"
+                is ResultadoApi.SinConexion -> "Sin conexión a internet"
+            }
+        }
+    }
 
     fun seleccionarMuseo(museo: Museo?) {
         _estado.update { it.copy(museoSeleccionado = museo) }

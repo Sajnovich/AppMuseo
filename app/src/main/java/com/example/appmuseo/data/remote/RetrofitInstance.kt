@@ -23,6 +23,19 @@ object RetrofitInstance {
             .build()
     }
 
+    // Nominatim exige identificar la app con un User-Agent propio
+    private val clienteOsm: OkHttpClient by lazy {
+        cliente.newBuilder()
+            .addInterceptor { cadena ->
+                cadena.proceed(
+                    cadena.request().newBuilder()
+                        .header("User-Agent", "AppMuseo/1.0 (proyecto academico Duoc UC)")
+                        .build()
+                )
+            }
+            .build()
+    }
+
     private fun crear(urlBase: String, http: OkHttpClient = cliente): Retrofit =
         Retrofit.Builder()
             .baseUrl(urlBase)
@@ -33,4 +46,5 @@ object RetrofitInstance {
     val usuarios: UsuariosApi by lazy { crear(BuildConfig.API_USUARIOS).create(UsuariosApi::class.java) }
     val catalogo: CatalogoApi by lazy { crear(BuildConfig.API_CATALOGO).create(CatalogoApi::class.java) }
     val pedidos: PedidosApi by lazy { crear(BuildConfig.API_PEDIDOS).create(PedidosApi::class.java) }
+    val osm: NominatimApi by lazy { crear("https://nominatim.openstreetmap.org/", clienteOsm).create(NominatimApi::class.java) }
 }

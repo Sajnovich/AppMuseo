@@ -49,6 +49,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -87,6 +88,10 @@ fun DetalleMuseoScreen(
         }
         return
     }
+
+    // la dirección real se pide a OpenStreetMap cada vez que se abre un museo
+    val direccionOsm by mapaViewModel.direccionOsm.collectAsState()
+    LaunchedEffect(museo.id) { mapaViewModel.cargarDireccion(museo) }
 
     val esFavorito = museo.id in favoritos
     // el corazon "late" al guardarlo
@@ -184,7 +189,7 @@ fun DetalleMuseoScreen(
                     Text(museo.detalle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
 
-                InfoMuseo(museo)
+                InfoMuseo(museo, direccionOsm)
 
                 Button(
                     onClick = {
@@ -229,7 +234,7 @@ fun DetalleMuseoScreen(
 }
 
 @Composable
-private fun InfoMuseo(museo: Museo) {
+private fun InfoMuseo(museo: Museo, direccionOsm: String? = null) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -238,6 +243,20 @@ private fun InfoMuseo(museo: Museo) {
             FilaInfo("Tipo", museo.tipo)
             HorizontalDivider()
             FilaInfo("Ubicación", "${museo.ciudad}, ${museo.pais}")
+            HorizontalDivider()
+            // dato de la API externa de OpenStreetMap (Nominatim)
+            Column {
+                Text(
+                    "Dirección según OpenStreetMap",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    direccionOsm ?: "Consultando…",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
             HorizontalDivider()
             FilaInfo("Levantamiento de datos", museo.anioLevantamiento.toString())
             HorizontalDivider()
