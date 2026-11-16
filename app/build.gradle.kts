@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    jacoco
 }
 
 // IP donde corren los microservicios. 10.0.2.2 es "localhost del computador" visto desde el emulador.
@@ -29,6 +30,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            // mide qué líneas de código recorren las pruebas unitarias (JaCoCo)
+            enableUnitTestCoverage = true
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -48,6 +53,40 @@ android {
         compose = true
         buildConfig = true
     }
+    // las pruebas unitarias corren sobre JUnit 5 (Kotest); las de JUnit 4 siguen funcionando con "vintage"
+    testOptions {
+        unitTests.all { it.useJUnitPlatform() }
+        unitTests.isReturnDefaultValues = true
+    }
+}
+
+// Reporte de cobertura de la lógica (ViewModel, Repository, Retrofit, modelos y utilidades).
+// Se deja fuera la interfaz Compose y el código que genera Android.
+// Uso: ./gradlew reporteCobertura  ->  app/build/reports/jacoco/reporteCobertura/html/index.html
+tasks.register<JacocoReport>("reporteCobertura") {
+    group = "verification"
+    description = "Corre las pruebas unitarias y genera el reporte de cobertura de la lógica"
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        html.required.set(true)
+        xml.required.set(true)
+    }
+
+    val fueraDelReporte = listOf(
+        "**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*",
+        "**/ui/**", "**/navigation/AppNavigation*", "**/MainActivity*",
+        "**/*_Impl*", "**/data/local/AppDatabase*", "**/data/SesionDataStore*",
+        "**/utils/ImagenUtils*", "**/utils/Notificaciones*", "**/utils/UbicacionUtils*",
+        "**/data/remote/RetrofitInstance*", "**/data/remote/*Api.class", "**/ComposableSingletons*"
+    )
+    classDirectories.setFrom(
+        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) { exclude(fueraDelReporte) }
+    )
+    sourceDirectories.setFrom(files("src/main/java"))
+    executionData.setFrom(
+        fileTree(layout.buildDirectory) { include("outputs/unit_test_code_coverage/debugUnitTest/*.exec") }
+    )
 }
 
 dependencies {
@@ -83,6 +122,12 @@ dependencies {
     implementation(libs.androidx.material3.windowsizeclass)
 
     testImplementation(libs.junit)
+    // pruebas de la Guía 15: Kotest + MockK + corrutinas
+    testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
+    testImplementation("io.kotest:kotest-assertions-core:5.9.1")
+    testImplementation("io.mockk:mockk:1.13.13")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.10.3")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
