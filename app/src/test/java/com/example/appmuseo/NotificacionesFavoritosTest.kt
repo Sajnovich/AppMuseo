@@ -6,9 +6,13 @@ import com.example.appmuseo.viewmodel.NotificacionesViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 
 class NotificacionesFavoritosTest {
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
 
     @Test
     fun notificaciones_marcarTodas_dejaCeroSinLeer() {

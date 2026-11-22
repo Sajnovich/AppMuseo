@@ -9,11 +9,15 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import kotlinx.coroutines.delay
 import com.example.appmuseo.model.Rol
 
 class LoginTest {
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
 
     // demoraMs = 0 para que las pruebas no esperen 1,5
     private val repositorio = AuthRepository(demoraMs = 0)

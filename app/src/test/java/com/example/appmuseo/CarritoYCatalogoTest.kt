@@ -11,9 +11,13 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 
 class CarritoYCatalogoTest {
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
 
     private val repositorio = CatalogoRepository()
     private val taza = repositorio.buscarPorId(1)!!   // merch, $8.990, 0,4 kg

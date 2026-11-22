@@ -18,6 +18,7 @@ import com.example.appmuseo.utils.CotizadorEnvio
 import com.example.appmuseo.viewmodel.SolicitudViewModel
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -82,7 +83,11 @@ class SolicitudViewModelSpec : FunSpec({
         }
     }
 
-    beforeTest { Dispatchers.setMain(UnconfinedTestDispatcher(reloj)) }
+    beforeTest {
+        // cada prueba parte con los mocks limpios (sin llamadas de la prueba anterior)
+        clearMocks(dao, api)
+        Dispatchers.setMain(UnconfinedTestDispatcher(reloj))
+    }
     afterTest {
         Dispatchers.resetMain()
         unmockkAll()

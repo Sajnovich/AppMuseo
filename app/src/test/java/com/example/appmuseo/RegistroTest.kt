@@ -17,6 +17,7 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 
 class FakeUsuarioDao : UsuarioDao {
@@ -42,6 +43,9 @@ class FakeUsuarioDao : UsuarioDao {
 }
 
 class RegistroTest {
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
 
     private val dao = FakeUsuarioDao()
     private val repositorio = AuthRepository(demoraMs = 0, usuarioDao = dao)

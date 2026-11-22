@@ -9,9 +9,13 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
 
 class CompraEnvioTest {
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
 
     private val catalogo = CatalogoRepository()
     private val taza = catalogo.buscarPorId(1)!!          // $8.990, 0,4 kg
