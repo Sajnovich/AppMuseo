@@ -26,6 +26,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import com.example.appmuseo.data.remote.TokenSesion
+import com.example.appmuseo.model.Rol
+import androidx.compose.material.icons.filled.VerifiedUser
+import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.AssignmentTurnedIn
+import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Favorite
@@ -64,6 +70,7 @@ import com.example.appmuseo.ui.components.BotonesCamaraGaleria
 import com.example.appmuseo.ui.components.DialogoCerrarSesion
 import com.example.appmuseo.ui.components.FotoPerfil
 import com.example.appmuseo.ui.theme.AzulNoche
+import com.example.appmuseo.ui.theme.VerdeCompletado
 import com.example.appmuseo.ui.theme.AzulProfundo
 import com.example.appmuseo.ui.theme.DoradoBoton
 import com.example.appmuseo.ui.theme.DoradoBotonClaro
@@ -208,6 +215,49 @@ fun PerfilScreen(
                                 cambiarFoto = false
                                 Toast.makeText(context, "Foto guardada", Toast.LENGTH_SHORT).show()
                             })
+                        }
+                    }
+                }
+
+                // sesión segura: muestra que la app trabaja con el token JWT que entregó ms-usuarios
+                SeccionMenu {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Filled.VerifiedUser, contentDescription = null, tint = if (TokenSesion.hayToken()) VerdeCompletado else MaterialTheme.colorScheme.error)
+                        Column(modifier = Modifier.weight(1f).padding(horizontal = 14.dp)) {
+                            Text(
+                                if (TokenSesion.hayToken()) "Sesión protegida con JWT" else "Sin token (modo sin conexión)",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                "Rol ${usuario.rol.etiqueta}" + (TokenSesion.horaExpiracion()?.let { " · vence a las $it" } ?: ""),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            TokenSesion.abreviado()?.let {
+                                Text("Bearer $it", style = MaterialTheme.typography.labelSmall, color = AzulNoche, maxLines = 1)
+                            }
+                        }
+                    }
+                }
+
+                // funciones propias del rol
+                if (usuario.rol != Rol.CLIENTE) {
+                    SeccionMenu {
+                        if (usuario.rol == Rol.ADMINISTRADOR) {
+                            OpcionMenu(Icons.Filled.Inventory2, "Gestionar catálogo", "Alta, modificación y eliminación") {
+                                mainViewModel.navigateTo(Screen.GestionCatalogo)
+                            }
+                            HorizontalDivider()
+                            OpcionMenu(Icons.Filled.AssignmentTurnedIn, "Solicitudes recibidas", "Revisar y cambiar estados") {
+                                mainViewModel.navigateTo(Screen.GestionPedidos)
+                            }
+                            HorizontalDivider()
+                        }
+                        OpcionMenu(Icons.Filled.AccountBalance, "Fichas de museos", "Registrar y corregir fichas museológicas") {
+                            mainViewModel.navigateTo(Screen.GestionMuseos)
                         }
                     }
                 }

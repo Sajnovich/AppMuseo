@@ -52,6 +52,8 @@ class PerfilSesionSpec : FunSpec({
         coEvery { anyConstructed<SesionDataStore>().guardarNotificaciones(any()) } just runs
         coEvery { anyConstructed<SesionDataStore>().guardarSesion(any()) } just runs
         coEvery { anyConstructed<SesionDataStore>().cerrarSesion() } just runs
+        coEvery { anyConstructed<SesionDataStore>().guardarToken(any(), any()) } just runs
+        every { anyConstructed<SesionDataStore>().obtenerToken() } returns flowOf("token-guardado" to "2026-11-24T22:30:00")
     }
     afterTest {
         Dispatchers.resetMain()
@@ -141,6 +143,19 @@ class PerfilSesionSpec : FunSpec({
 
         viewModel.sesionActiva.value shouldBe true
         viewModel.usuario.value.correo shouldBe "estudiante@museo.cl"
+        // el token JWT guardado vuelve a quedar listo para las peticiones
+        com.example.appmuseo.data.remote.TokenSesion.token shouldBe "token-guardado"
+    }
+
+    test("una sesión guardada sin token JWT pide iniciar sesión de nuevo") {
+        every { anyConstructed<SesionDataStore>().obtenerSesionActiva() } returns flowOf(true)
+        every { anyConstructed<SesionDataStore>().obtenerUsuario() } returns flowOf(estudiante)
+        every { anyConstructed<SesionDataStore>().obtenerToken() } returns flowOf(null to null)
+
+        val viewModel = SesionViewModel(mockk(relaxed = true))
+        reloj.advanceUntilIdle()
+
+        viewModel.sesionActiva.value shouldBe false
     }
 
     test("iniciar y cerrar sesión cambia el usuario activo") {
@@ -157,6 +172,7 @@ class PerfilSesionSpec : FunSpec({
         reloj.advanceUntilIdle()
         viewModel.sesionActiva.value shouldBe false
         viewModel.usuario.value.correo shouldBe ""
+        com.example.appmuseo.data.remote.TokenSesion.hayToken() shouldBe false
     }
 
     test("la navegación emite un evento por cada acción") {

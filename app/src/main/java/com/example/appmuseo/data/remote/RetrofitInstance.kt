@@ -11,7 +11,8 @@ import java.util.concurrent.TimeUnit
 // "by lazy" hace que cada uno se cree recién la primera vez que se usa
 object RetrofitInstance {
 
-    private val cliente: OkHttpClient by lazy {
+    // configuración común: tiempos de espera y log
+    private val base: OkHttpClient by lazy {
         val log = HttpLoggingInterceptor().apply {
             // en el Logcat se ven las peticiones y respuestas (solo en debug)
             level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
@@ -23,9 +24,22 @@ object RetrofitInstance {
             .build()
     }
 
-    // Nominatim exige identificar la app con un User-Agent propio
+    // cliente de los 3 microservicios: agrega el token JWT de la sesión en cada petición.
+    // El log va antes, así el token no queda escrito en el Logcat
+    private val cliente: OkHttpClient by lazy {
+        base.newBuilder()
+            .addInterceptor { cadena ->
+                val token = TokenSesion.token
+                val peticion = if (token.isNullOrBlank()) cadena.request()
+                else cadena.request().newBuilder().header("Authorization", "Bearer $token").build()
+                cadena.proceed(peticion)
+            }
+            .build()
+    }
+
+    // Nominatim exige identificar la app con un User-Agent propio (y no recibe nuestro token)
     private val clienteOsm: OkHttpClient by lazy {
-        cliente.newBuilder()
+        base.newBuilder()
             .addInterceptor { cadena ->
                 cadena.proceed(
                     cadena.request().newBuilder()

@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appmuseo.data.SesionDataStore
+import com.example.appmuseo.data.remote.TokenSesion
 import com.example.appmuseo.model.PerfilUsuario
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,9 +29,17 @@ class SesionViewModel(application: Application) : AndroidViewModel(application) 
     private fun cargarSesion() {
         viewModelScope.launch {
             delay(1_200)
-            val activa = sesionDataStore.obtenerSesionActiva().first() ?: false
+            var activa = sesionDataStore.obtenerSesionActiva().first() ?: false
             if (activa) {
-                _usuario.value = sesionDataStore.obtenerUsuario().first()
+                // se recupera el token JWT guardado para seguir usando el backend
+                val (token, expira) = sesionDataStore.obtenerToken().first()
+                if (token.isNullOrBlank()) {
+                    // sesión antigua o sin conexión: sin token el backend responde 401, así que se pide entrar de nuevo
+                    activa = false
+                } else {
+                    TokenSesion.guardar(token, expira)
+                    _usuario.value = sesionDataStore.obtenerUsuario().first()
+                }
             }
             _sesionActiva.value = activa
         }
@@ -39,12 +48,16 @@ class SesionViewModel(application: Application) : AndroidViewModel(application) 
     fun iniciarSesion(perfil: PerfilUsuario) {
         _usuario.value = perfil
         _sesionActiva.value = true
-        viewModelScope.launch { sesionDataStore.guardarSesion(perfil) }
+        viewModelScope.launch {
+            sesionDataStore.guardarSesion(perfil)
+            sesionDataStore.guardarToken(TokenSesion.token, TokenSesion.expiraEn)
+        }
     }
 
     fun cerrarSesion() {
         viewModelScope.launch {
             sesionDataStore.cerrarSesion()
+            TokenSesion.limpiar()
             _usuario.value = PerfilUsuario("", "", "")
             _sesionActiva.value = false
         }

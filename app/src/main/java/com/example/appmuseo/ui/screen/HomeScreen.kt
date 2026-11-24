@@ -30,6 +30,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.AddLocationAlt
+import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.AssignmentTurnedIn
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocalMall
@@ -62,6 +65,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import com.example.appmuseo.model.Rol
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -189,6 +193,40 @@ fun HomeScreen(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // panel según el rol (Pantalla 4 del caso): el Administrador ve gestión y solicitudes,
+                // el Investigador sus fichas museológicas. El Cliente no ve este panel
+                val gestion = when (usuario.rol) {
+                    Rol.ADMINISTRADOR -> listOf(
+                        AccesoRapido("Catálogo", Icons.Filled.Inventory2, AzulNoche) { mainViewModel.navigateTo(Screen.GestionCatalogo) },
+                        AccesoRapido("Solicitudes", Icons.Filled.AssignmentTurnedIn, AzulNoche) { mainViewModel.navigateTo(Screen.GestionPedidos) },
+                        AccesoRapido("Fichas", Icons.Filled.AccountBalance, AzulNoche) { mainViewModel.navigateTo(Screen.GestionMuseos) }
+                    )
+                    Rol.INVESTIGADOR -> listOf(
+                        AccesoRapido("Mis fichas", Icons.Filled.AccountBalance, AzulNoche) { mainViewModel.navigateTo(Screen.GestionMuseos) },
+                        AccesoRapido("Ubicaciones", Icons.Filled.AddLocationAlt, AzulNoche) { mainViewModel.navegarPestana(Screen.Mapa) }
+                    )
+                    Rol.CLIENTE -> emptyList()
+                }
+                if (gestion.isNotEmpty()) {
+                    Text(
+                        if (usuario.rol == Rol.ADMINISTRADOR) "Panel de gestión" else "Investigación",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp, horizontal = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            gestion.forEach { BotonAcceso(it, Modifier.weight(1f)) }
+                        }
+                    }
+                }
+
                 Text("Explora", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
 
                 // grilla de 2x2, cada tarjeta entra un poco despues de la anterior

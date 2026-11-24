@@ -27,6 +27,11 @@ import com.example.appmuseo.ui.screen.EditarPerfilScreen
 import com.example.appmuseo.ui.screen.DetalleProductoScreen
 import com.example.appmuseo.ui.screen.EscanerScreen
 import com.example.appmuseo.ui.screen.FavoritosScreen
+import com.example.appmuseo.ui.screen.GestionCatalogoScreen
+import com.example.appmuseo.ui.screen.GestionMuseosScreen
+import com.example.appmuseo.ui.screen.GestionPedidosScreen
+import com.example.appmuseo.ui.screen.MuseoFormScreen
+import com.example.appmuseo.ui.screen.ProductoFormScreen
 import com.example.appmuseo.ui.screen.HomeScreen
 import com.example.appmuseo.ui.screen.LoginScreen
 import com.example.appmuseo.ui.screen.MapaMuseosScreen
@@ -42,6 +47,7 @@ import com.example.appmuseo.viewmodel.CatalogoViewModel
 import com.example.appmuseo.viewmodel.CotizadorViewModel
 import com.example.appmuseo.viewmodel.EscanerViewModel
 import com.example.appmuseo.viewmodel.FavoritosViewModel
+import com.example.appmuseo.viewmodel.GestionViewModel
 import com.example.appmuseo.viewmodel.LoginViewModel
 import com.example.appmuseo.viewmodel.MainViewModel
 import com.example.appmuseo.viewmodel.MapaViewModel
@@ -53,6 +59,7 @@ import com.example.appmuseo.viewmodel.SolicitudViewModel
 import com.example.appmuseo.data.local.AppDatabase
 import com.example.appmuseo.data.remote.RetrofitInstance
 import com.example.appmuseo.repository.AuthRepository
+import com.example.appmuseo.model.Rol
 import kotlinx.coroutines.flow.collectLatest
 
 private const val DURACION_TRANSICION = 300
@@ -83,6 +90,7 @@ fun AppNavigation() {
     val perfilViewModel: PerfilViewModel = viewModel()
     val notificacionesViewModel: NotificacionesViewModel = viewModel()
     val favoritosViewModel: FavoritosViewModel = viewModel()
+    val gestionViewModel: GestionViewModel = viewModel()
 
     // cantidad sin leer para el numerito de la barra inferior
     val notificaciones by notificacionesViewModel.notificaciones.collectAsState()
@@ -173,7 +181,10 @@ fun AppNavigation() {
             arguments = listOf(navArgument(Screen.ARG_PEDIDO_ID) { type = NavType.IntType })
         ) { backStackEntry ->
             val pedidoId = backStackEntry.arguments?.getInt(Screen.ARG_PEDIDO_ID) ?: 0
-            DetallePedidoScreen(pedidoId, solicitudViewModel, notificacionesViewModel, catalogoViewModel, carritoViewModel, mainViewModel)
+            DetallePedidoScreen(
+                pedidoId, solicitudViewModel, notificacionesViewModel, catalogoViewModel, carritoViewModel, mainViewModel,
+                puedeAvanzar = usuario.rol == Rol.ADMINISTRADOR
+            )
         }
         composable(route = Screen.MisSolicitudes.route) {
             MisSolicitudesScreen(solicitudViewModel, notificacionesViewModel, mainViewModel)
@@ -208,6 +219,27 @@ fun AppNavigation() {
         }
         composable(route = Screen.Favoritos.route) {
             FavoritosScreen(favoritosViewModel, catalogoViewModel, mainViewModel)
+        }
+
+        // ---- gestión: al guardar se vuelve a sincronizar el catálogo o el mapa para ver el cambio ----
+        composable(route = Screen.GestionCatalogo.route) {
+            GestionCatalogoScreen(gestionViewModel, mainViewModel, onCambios = { catalogoViewModel.sincronizar() })
+        }
+        composable(route = Screen.ProductoForm.route) {
+            ProductoFormScreen(gestionViewModel, mainViewModel, onCambios = { catalogoViewModel.sincronizar() })
+        }
+        composable(route = Screen.GestionMuseos.route) {
+            GestionMuseosScreen(
+                gestionViewModel, mainViewModel,
+                esAdministrador = usuario.rol == Rol.ADMINISTRADOR,
+                onCambios = { mapaViewModel.sincronizar() }
+            )
+        }
+        composable(route = Screen.MuseoForm.route) {
+            MuseoFormScreen(gestionViewModel, mainViewModel, onCambios = { mapaViewModel.sincronizar() })
+        }
+        composable(route = Screen.GestionPedidos.route) {
+            GestionPedidosScreen(gestionViewModel, mainViewModel)
         }
     }
 }

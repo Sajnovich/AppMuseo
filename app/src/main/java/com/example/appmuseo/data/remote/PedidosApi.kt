@@ -20,6 +20,10 @@ interface PedidosApi {
     @GET("api/pedidos")
     suspend fun listar(@Query("correo") correo: String): Response<List<PedidoDto>>
 
+    // Administrador: todas las solicitudes recibidas (sin filtro de correo)
+    @GET("api/pedidos")
+    suspend fun listarTodos(): Response<List<PedidoDto>>
+
     @PATCH("api/pedidos/{id}/avanzar")
     suspend fun avanzar(@Path("id") id: Long): Response<PedidoDto>
 

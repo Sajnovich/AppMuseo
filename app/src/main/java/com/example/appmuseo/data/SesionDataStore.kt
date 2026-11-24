@@ -23,6 +23,19 @@ class SesionDataStore(private val context: Context) {
     private val ROL = stringPreferencesKey("rol_usuario")
     private val AVATAR = intPreferencesKey("avatar_usuario")
     private val NOTIFICACIONES = booleanPreferencesKey("notificaciones_activas")
+    private val TOKEN = stringPreferencesKey("token_jwt")
+    private val TOKEN_EXPIRA = stringPreferencesKey("token_expira")
+
+    // token JWT de la sesión (para no tener que iniciar sesión cada vez que se abre la app)
+    suspend fun guardarToken(token: String?, expiraEn: String?) {
+        context.dataStore.edit { preferencias ->
+            if (token == null) preferencias.remove(TOKEN) else preferencias[TOKEN] = token
+            if (expiraEn == null) preferencias.remove(TOKEN_EXPIRA) else preferencias[TOKEN_EXPIRA] = expiraEn
+        }
+    }
+
+    fun obtenerToken(): Flow<Pair<String?, String?>> =
+        context.dataStore.data.map { preferencias -> preferencias[TOKEN] to preferencias[TOKEN_EXPIRA] }
 
     suspend fun guardarSesion(perfil: PerfilUsuario) {
         context.dataStore.edit { preferencias ->
@@ -43,6 +56,8 @@ class SesionDataStore(private val context: Context) {
             preferencias.remove(TIPO)
             preferencias.remove(ROL)
             preferencias.remove(AVATAR)
+            preferencias.remove(TOKEN)
+            preferencias.remove(TOKEN_EXPIRA)
         }
     }
 

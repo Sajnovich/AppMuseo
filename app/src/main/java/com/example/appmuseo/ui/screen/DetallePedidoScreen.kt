@@ -91,7 +91,9 @@ fun DetallePedidoScreen(
     notificacionesViewModel: NotificacionesViewModel,
     catalogoViewModel: CatalogoViewModel,
     carritoViewModel: CarritoViewModel,
-    mainViewModel: MainViewModel
+    mainViewModel: MainViewModel,
+    // cambiar el estado es gestión del Administrador (el backend lo exige con el token)
+    puedeAvanzar: Boolean = false
 ) {
     // se observa la lista para que el estado se actualice al avanzar
     val solicitudes by solicitudViewModel.solicitudes.collectAsState()
@@ -204,6 +206,7 @@ fun DetallePedidoScreen(
                 if (pestana == 0) {
                     Seguimiento(
                         pedido = pedido,
+                        puedeAvanzar = puedeAvanzar,
                         onAvanzar = {
                             val nuevo = solicitudViewModel.avanzarEstado(pedido)
                             if (nuevo != null) {
@@ -234,7 +237,7 @@ private fun descripcionEstado(estado: String): String = when (estado) {
 }
 
 @Composable
-private fun Seguimiento(pedido: SolicitudEntity, onAvanzar: () -> Unit, onEliminar: () -> Unit) {
+private fun Seguimiento(pedido: SolicitudEntity, puedeAvanzar: Boolean, onAvanzar: () -> Unit, onEliminar: () -> Unit) {
     val indiceActual = EstadoSolicitud.ORDEN.indexOf(pedido.estado)
 
     Card(
@@ -306,10 +309,18 @@ private fun Seguimiento(pedido: SolicitudEntity, onAvanzar: () -> Unit, onElimin
     Spacer(modifier = Modifier.height(12.dp))
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (pedido.estado != EstadoSolicitud.ENTREGADA) {
-            OutlinedButton(onClick = onAvanzar) {
-                Icon(Icons.Filled.Update, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("Avanzar estado (simulado)")
+            if (puedeAvanzar) {
+                OutlinedButton(onClick = onAvanzar) {
+                    Icon(Icons.Filled.Update, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Avanzar estado")
+                }
+            } else {
+                Text(
+                    "El estado lo actualiza el Administrador",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
         Spacer(modifier = Modifier.weight(1f))

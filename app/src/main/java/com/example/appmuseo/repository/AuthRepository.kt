@@ -4,6 +4,7 @@ import com.example.appmuseo.data.local.UsuarioDao
 import com.example.appmuseo.data.local.UsuarioEntity
 import com.example.appmuseo.data.remote.Red
 import com.example.appmuseo.data.remote.ResultadoApi
+import com.example.appmuseo.data.remote.TokenSesion
 import com.example.appmuseo.data.remote.UsuariosApi
 import com.example.appmuseo.data.remote.aPerfil
 import com.example.appmuseo.data.remote.dto.ActualizarPerfilDto
@@ -88,6 +89,8 @@ class AuthRepository(
             when (val respuesta = Red.llamar { servicio.login(LoginRequestDto(correoLimpio, clave, rol?.name)) }) {
                 is ResultadoApi.Exito -> {
                     guardarCopiaLocal(respuesta.datos, clave)
+                    // el token JWT queda listo para las siguientes peticiones
+                    TokenSesion.guardar(respuesta.datos.token, respuesta.datos.expiraEn)
                     return ResultadoLogin.Exito(respuesta.datos.aPerfil())
                 }
                 is ResultadoApi.ErrorServidor -> return ResultadoLogin.Error(respuesta.mensaje)
@@ -97,6 +100,8 @@ class AuthRepository(
         }
 
         delay(demoraMs)
+        // sin conexión no hay token: se entra con la copia local, pero el backend pedirá iniciar sesión otra vez
+        TokenSesion.limpiar()
 
         // sin base de datos (pruebas unitarias) se usa la lista fija
         val dao = usuarioDao

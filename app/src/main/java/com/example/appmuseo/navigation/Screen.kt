@@ -22,6 +22,13 @@ sealed class Screen(val route: String) {
     data object Resumen : Screen("resumen_compra")
     data object EditarPerfil : Screen("editar_perfil")
 
+    // gestión según el rol (Administrador / Investigador)
+    data object GestionCatalogo : Screen("gestion_catalogo")
+    data object ProductoForm : Screen("gestion_producto")
+    data object GestionMuseos : Screen("gestion_museos")
+    data object MuseoForm : Screen("gestion_museo")
+    data object GestionPedidos : Screen("gestion_pedidos")
+
     data class Detalle(val productoId: Int) : Screen(RUTA_DETALLE) {
         override fun construirRuta(): String = route.replace("{$ARG_PRODUCTO_ID}", productoId.toString())
     }

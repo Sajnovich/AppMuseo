@@ -31,7 +31,10 @@ data class UsuarioDto(
     val correo: String,
     val tipoUsuario: String,
     val rol: String,
-    val avatar: Int
+    val avatar: Int,
+    // solo vienen en la respuesta del login: token JWT y su vencimiento
+    val token: String? = null,
+    val expiraEn: String? = null
 )
 
 // formato de error que devuelven los tres microservicios
