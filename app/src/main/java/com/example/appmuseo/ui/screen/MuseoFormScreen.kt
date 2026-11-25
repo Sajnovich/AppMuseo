@@ -40,6 +40,8 @@ import com.example.appmuseo.ui.components.AvisoRolJwt
 import com.example.appmuseo.ui.components.BarraSuperior
 import com.example.appmuseo.ui.components.CampoTexto
 import com.example.appmuseo.ui.components.ChipsOpciones
+import com.example.appmuseo.ui.components.EditorImagen
+import com.example.appmuseo.utils.claveMuseo
 import com.example.appmuseo.ui.components.MensajeGestion
 import com.example.appmuseo.ui.theme.DoradoBoton
 import com.example.appmuseo.viewmodel.GestionViewModel
@@ -71,6 +73,12 @@ fun MuseoFormScreen(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             AvisoRolJwt(if (form.esNuevo) "Se registra con POST /api/museos" else "Se corrige con PUT /api/museos/${form.id}")
+
+            EditorImagen(
+                clave = form.id?.let { claveMuseo(it) },
+                porDefecto = 0,
+                cambio = form.imagen
+            ) { cambio -> gestionViewModel.onMuseoChange("imagen") { it.copy(imagen = cambio) } }
 
             CampoTexto(form.nombre, { v -> gestionViewModel.onMuseoChange("nombre") { it.copy(nombre = v) } },
                 "Nombre del museo", Icons.Filled.AccountBalance, error = errores["nombre"])

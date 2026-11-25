@@ -6,6 +6,13 @@ import com.example.appmuseo.data.remote.dto.PedidoDto
 import com.example.appmuseo.data.remote.dto.ProductoDto
 import com.example.appmuseo.data.remote.dto.ProductoRequestDto
 
+// Qué se hará con la imagen al guardar el formulario
+sealed interface CambioImagen {
+    data object SinCambios : CambioImagen
+    data class Nueva(val uri: String) : CambioImagen   // foto de cámara o galería
+    data object Quitar : CambioImagen
+}
+
 // Formulario de alta / modificación de un producto o curso (Administrador).
 // Los números se guardan como texto mientras se escriben y se convierten al guardar
 data class FormProducto(
@@ -19,7 +26,8 @@ data class FormProducto(
     val codigoBarra: String = "",
     val modalidad: String = "Online",
     val semanas: String = "",
-    val destacado: Boolean = false
+    val destacado: Boolean = false,
+    val imagen: CambioImagen = CambioImagen.SinCambios
 ) {
     val esCurso: Boolean get() = categoria == Categoria.CURSO
     val esNuevo: Boolean get() = id == null
@@ -68,7 +76,8 @@ data class FormMuseo(
     val longitud: String = "",
     val anio: String = "2026",
     val calificacion: String = "4.5",
-    val resenas: String = "0"
+    val resenas: String = "0",
+    val imagen: CambioImagen = CambioImagen.SinCambios
 ) {
     val esNuevo: Boolean get() = id == null
 

@@ -24,6 +24,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import com.example.appmuseo.utils.ImagenGuardada
+import com.example.appmuseo.utils.ImagenesCatalogo
+import com.example.appmuseo.utils.claveMuseo
+import java.io.File
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -73,6 +81,17 @@ fun CabeceraMuseo(
             tint = Color.White.copy(alpha = 0.85f),
             modifier = Modifier.size(tamanoIcono)
         )
+        // si el Investigador / Administrador le puso foto, se ve encima del degradado
+        val imagenes by ImagenesCatalogo.imagenes.collectAsState()
+        val propia = imagenes[claveMuseo(museo.id)] as? ImagenGuardada.Propia
+        if (propia != null) {
+            AsyncImage(
+                model = File(propia.ruta),
+                contentDescription = "Foto de ${museo.nombre}",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize()
+            )
+        }
         contenido()
     }
 }

@@ -37,6 +37,9 @@ import com.example.appmuseo.ui.components.BarraSuperior
 import com.example.appmuseo.ui.components.DialogoConfirmacion
 import com.example.appmuseo.ui.components.MensajeGestion
 import com.example.appmuseo.ui.components.TarjetaGestion
+import com.example.appmuseo.ui.components.ImagenCatalogo
+import com.example.appmuseo.ui.components.RespaldoIcono
+import com.example.appmuseo.utils.claveMuseo
 import com.example.appmuseo.ui.theme.DoradoBoton
 import com.example.appmuseo.viewmodel.GestionViewModel
 import com.example.appmuseo.viewmodel.MainViewModel
@@ -109,7 +112,12 @@ fun GestionMuseosScreen(
                         icono = Icons.Filled.AccountBalance,
                         titulo = museo.nombre,
                         detalle = "${museo.ciudad}, ${museo.pais} · ${museo.tipo}",
-                        etiqueta = "Levantamiento ${museo.anioLevantamiento}"
+                        etiqueta = "Levantamiento ${museo.anioLevantamiento}",
+                        miniatura = { m ->
+                            ImagenCatalogo(claveMuseo(museo.id), 0, "Foto de ${museo.nombre}", m) {
+                                RespaldoIcono(it, Icons.Filled.AccountBalance)
+                            }
+                        }
                     ) {
                         IconButton(onClick = {
                             gestionViewModel.editarMuseo(museo)

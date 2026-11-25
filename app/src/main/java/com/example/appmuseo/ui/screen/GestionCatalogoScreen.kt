@@ -38,6 +38,10 @@ import com.example.appmuseo.ui.components.AvisoRolJwt
 import com.example.appmuseo.ui.components.BarraSuperior
 import com.example.appmuseo.ui.components.ChipsOpciones
 import com.example.appmuseo.ui.components.DialogoConfirmacion
+import com.example.appmuseo.ui.components.ImagenCatalogo
+import com.example.appmuseo.ui.components.RespaldoIcono
+import com.example.appmuseo.ui.components.imagenDeProducto
+import com.example.appmuseo.utils.claveProducto
 import com.example.appmuseo.ui.components.MensajeGestion
 import com.example.appmuseo.ui.components.TarjetaGestion
 import com.example.appmuseo.ui.theme.AmbarPendiente
@@ -119,7 +123,12 @@ fun GestionCatalogoScreen(
                             producto.destacado -> "Destacado"
                             else -> null
                         },
-                        colorEtiqueta = if (producto.stock == 0) AmbarPendiente else DoradoBoton
+                        colorEtiqueta = if (producto.stock == 0) AmbarPendiente else DoradoBoton,
+                        miniatura = { m ->
+                            ImagenCatalogo(claveProducto(producto.id), imagenDeProducto(producto.id.toInt()), "Imagen de ${producto.nombre}", m) {
+                                RespaldoIcono(it, if (esCurso) Icons.AutoMirrored.Filled.MenuBook else Icons.Filled.Inventory2)
+                            }
+                        }
                     ) {
                         IconButton(onClick = {
                             gestionViewModel.editarProducto(producto)

@@ -5,10 +5,15 @@ import androidx.lifecycle.viewModelScope
 import com.example.appmuseo.data.remote.ResultadoApi
 import com.example.appmuseo.data.remote.dto.MuseoDto
 import com.example.appmuseo.data.remote.dto.ProductoDto
+import com.example.appmuseo.model.CambioImagen
 import com.example.appmuseo.model.FormMuseo
 import com.example.appmuseo.model.FormProducto
 import com.example.appmuseo.model.GestionUiState
 import com.example.appmuseo.repository.GestionRepository
+import com.example.appmuseo.utils.AlmacenImagenes
+import com.example.appmuseo.utils.ImagenesCatalogo
+import com.example.appmuseo.utils.claveMuseo
+import com.example.appmuseo.utils.claveProducto
 import com.example.appmuseo.utils.ValidacionesGestion
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +25,8 @@ import kotlinx.coroutines.launch
 //  - Investigador: registro y corrección de fichas de museos
 // Cada acción llama al backend con el token JWT; si el rol no corresponde, el backend responde 403.
 class GestionViewModel(
-    private val repositorio: GestionRepository = GestionRepository()
+    private val repositorio: GestionRepository = GestionRepository(),
+    private val imagenes: AlmacenImagenes = ImagenesCatalogo
 ) : ViewModel() {
 
     private val _estado = MutableStateFlow(GestionUiState())
@@ -52,6 +58,8 @@ class GestionViewModel(
                     val texto = if (form.esNuevo) "«${r.datos.nombre}» se agregó al catálogo" else "«${r.datos.nombre}» se actualizó"
                     _estado.update { e -> e.copy(productos = reemplazar(e.productos, r.datos) { it.id }, mensaje = texto) }
                     onGuardado()
+                    // la imagen se aplica después de guardar: así un producto nuevo ya tiene su id
+                    aplicarImagen(claveProducto(r.datos.id), form.imagen)
                 }
                 else -> manejarError(r)
             }
@@ -60,8 +68,11 @@ class GestionViewModel(
 
     fun eliminarProducto(producto: ProductoDto) = guardar {
         when (val r = repositorio.eliminarProducto(producto.id)) {
-            is ResultadoApi.Exito -> _estado.update { e ->
-                e.copy(productos = e.productos.filterNot { it.id == producto.id }, mensaje = "«${producto.nombre}» se eliminó del catálogo")
+            is ResultadoApi.Exito -> {
+                _estado.update { e ->
+                    e.copy(productos = e.productos.filterNot { it.id == producto.id }, mensaje = "«${producto.nombre}» se eliminó del catálogo")
+                }
+                imagenes.olvidar(claveProducto(producto.id))
             }
             else -> manejarError(r)
         }
@@ -92,6 +103,7 @@ class GestionViewModel(
                     val texto = if (form.esNuevo) "Ficha de «${r.datos.nombre}» registrada" else "Ficha de «${r.datos.nombre}» corregida"
                     _estado.update { e -> e.copy(museos = reemplazar(e.museos, r.datos) { it.id }, mensaje = texto) }
                     onGuardado()
+                    aplicarImagen(claveMuseo(r.datos.id), form.imagen)
                 }
                 else -> manejarError(r)
             }
@@ -100,8 +112,11 @@ class GestionViewModel(
 
     fun eliminarMuseo(museo: MuseoDto) = guardar {
         when (val r = repositorio.eliminarMuseo(museo.id)) {
-            is ResultadoApi.Exito -> _estado.update { e ->
-                e.copy(museos = e.museos.filterNot { it.id == museo.id }, mensaje = "Se eliminó la ficha de «${museo.nombre}»")
+            is ResultadoApi.Exito -> {
+                _estado.update { e ->
+                    e.copy(museos = e.museos.filterNot { it.id == museo.id }, mensaje = "Se eliminó la ficha de «${museo.nombre}»")
+                }
+                imagenes.olvidar(claveMuseo(museo.id))
             }
             else -> manejarError(r)
         }
@@ -126,6 +141,15 @@ class GestionViewModel(
     fun limpiarMensaje() = _estado.update { it.copy(mensaje = null) }
 
     // ---------- ayudas ----------
+
+    // imagen elegida en el formulario: se guarda, se quita o se deja igual
+    private suspend fun aplicarImagen(clave: String, cambio: CambioImagen) {
+        when (cambio) {
+            is CambioImagen.Nueva -> imagenes.guardar(clave, cambio.uri)
+            CambioImagen.Quitar -> imagenes.quitar(clave)
+            CambioImagen.SinCambios -> Unit
+        }
+    }
 
     private fun cargar(accion: suspend () -> Unit) {
         viewModelScope.launch {

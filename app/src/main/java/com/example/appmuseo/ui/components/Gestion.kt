@@ -32,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -51,6 +52,7 @@ fun TarjetaGestion(
     detalle: String,
     etiqueta: String? = null,
     colorEtiqueta: Color = DoradoBoton,
+    miniatura: (@Composable (Modifier) -> Unit)? = null,
     acciones: @Composable RowScope.() -> Unit = {}
 ) {
     Card(
@@ -60,12 +62,16 @@ fun TarjetaGestion(
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(modifier = Modifier.padding(start = 14.dp, top = 10.dp, bottom = 10.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(42.dp)
-                    .background(DoradoBotonContenedor, RoundedCornerShape(12.dp)),
-                contentAlignment = Alignment.Center
-            ) { Icon(icono, contentDescription = null, tint = AzulNoche) }
+            if (miniatura != null) {
+                miniatura(Modifier.size(42.dp).clip(RoundedCornerShape(12.dp)))
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .background(DoradoBotonContenedor, RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) { Icon(icono, contentDescription = null, tint = AzulNoche) }
+            }
             Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
                 Text(titulo, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(detalle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)

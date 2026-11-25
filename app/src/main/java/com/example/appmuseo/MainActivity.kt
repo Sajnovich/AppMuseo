@@ -10,6 +10,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.example.appmuseo.navigation.AppNavigation
 import com.example.appmuseo.ui.theme.MuseoTheme
+import com.example.appmuseo.utils.ImagenesCatalogo
 import com.example.appmuseo.utils.Notificaciones
 import org.osmdroid.config.Configuration
 
@@ -18,6 +19,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         Notificaciones.crearCanal(this)
+        // lee las imágenes de productos y museos guardadas en el teléfono
+        ImagenesCatalogo.iniciar(this)
         // osmdroid exige identificar la app ante los servidores
         Configuration.getInstance().userAgentValue = "AppMuseoDuoc/1.0 (proyecto estudiantil)"
         setContent {

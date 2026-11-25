@@ -1,7 +1,6 @@
 package com.example.appmuseo.ui.components
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,9 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,6 +51,7 @@ import com.example.appmuseo.ui.theme.AzulNoche
 import com.example.appmuseo.ui.theme.DoradoBoton
 import com.example.appmuseo.ui.theme.MuseoTheme
 import com.example.appmuseo.ui.theme.VerdeCompletado
+import com.example.appmuseo.utils.claveProducto
 import com.example.appmuseo.utils.formatearPrecio
 
 fun iconoDeCategoria(categoria: Categoria): ImageVector = when (categoria) {
@@ -105,19 +103,17 @@ fun IconoCategoria(categoria: Categoria, modifier: Modifier = Modifier, tamano: 
     }
 }
 
-// si el producto no tiene imagen se muestra el icono de su categoria
+// foto propia (si el Administrador la cambió), si no la ilustración de la app,
+// y si no tiene imagen se muestra el icono de su categoria
 @Composable
 fun ImagenProducto(producto: Producto, modifier: Modifier = Modifier) {
-    val imagen = imagenDeProducto(producto.id)
-    if (imagen != 0) {
-        Image(
-            painter = painterResource(imagen),
-            contentDescription = "Imagen de ${producto.nombre}",
-            contentScale = ContentScale.Crop,
-            modifier = modifier
-        )
-    } else {
-        Box(modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
+    ImagenCatalogo(
+        clave = claveProducto(producto.id),
+        porDefecto = imagenDeProducto(producto.id),
+        descripcion = "Imagen de ${producto.nombre}",
+        modifier = modifier
+    ) { m ->
+        Box(modifier = m.background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
             Icon(iconoDeCategoria(producto.categoria), contentDescription = null, modifier = Modifier.size(48.dp))
         }
     }

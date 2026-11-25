@@ -42,6 +42,9 @@ import com.example.appmuseo.ui.components.AvisoRolJwt
 import com.example.appmuseo.ui.components.BarraSuperior
 import com.example.appmuseo.ui.components.CampoTexto
 import com.example.appmuseo.ui.components.ChipsOpciones
+import com.example.appmuseo.ui.components.EditorImagen
+import com.example.appmuseo.ui.components.imagenDeProducto
+import com.example.appmuseo.utils.claveProducto
 import com.example.appmuseo.ui.components.MensajeGestion
 import com.example.appmuseo.ui.theme.DoradoBoton
 import com.example.appmuseo.viewmodel.GestionViewModel
@@ -77,6 +80,12 @@ fun ProductoFormScreen(
             ChipsOpciones(Categoria.entries, form.categoria, { it.etiqueta }) { elegida ->
                 gestionViewModel.onProductoChange("categoria") { it.copy(categoria = elegida) }
             }
+
+            EditorImagen(
+                clave = form.id?.let { claveProducto(it) },
+                porDefecto = form.id?.let { imagenDeProducto(it.toInt()) } ?: 0,
+                cambio = form.imagen
+            ) { cambio -> gestionViewModel.onProductoChange("imagen") { it.copy(imagen = cambio) } }
 
             CampoTexto(form.nombre, { v -> gestionViewModel.onProductoChange("nombre") { it.copy(nombre = v) } },
                 "Nombre", Icons.Filled.Sell, error = errores["nombre"])
